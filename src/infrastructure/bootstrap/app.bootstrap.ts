@@ -8,9 +8,11 @@ export class AppBootstrap {
   }
 
   public async initialize(): Promise<void> {
-    console.log('Initializing application...');
+    // Initialize HTTP server with logger first
+    await this.httpServer.initialize();
+
+    // Register routes
     this.httpServer.registerRoutes();
-    console.log('Routes registered');
   }
 
   public async start(): Promise<void> {
