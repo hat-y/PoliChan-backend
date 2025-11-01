@@ -1,4 +1,4 @@
-import { AppBootstrap } from './infrastructure/bootstrap/app.bootstrap';
+import { AppBootstrap } from './shared/infrastructure/bootstrap/app.bootstrap';
 
 const bootstrap = async (): Promise<void> => {
   try {

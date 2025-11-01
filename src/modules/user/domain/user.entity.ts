@@ -1,4 +1,4 @@
-import { DomainEvent } from '../../../infrastructure/common/event';
+import { DomainEvent } from '../../../shared/domain/event';
 
 // User Entity
 export class User {

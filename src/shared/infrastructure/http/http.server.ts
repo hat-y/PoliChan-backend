@@ -1,8 +1,8 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import fastifyEnv from '@fastify/env';
-import { UserModule } from '../../modules/user/user.module';
+import { UserModule } from '../../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
-import { UserController } from '../../modules/user/presentation/controllers/user.controller';
+import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 import { envSchema } from '../common/env/env.schema';
 
 export class HttpServer {
@@ -149,7 +149,7 @@ export class HttpServer {
           host,
           pid: process.pid,
         },
-        `Server listening on http://${host}:${port}`
+        `Server listening on http://localhost:${port}`
       );
     } catch (err) {
       this.instance.log.error('Failed to start server');
