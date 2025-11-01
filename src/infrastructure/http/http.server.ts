@@ -1,6 +1,10 @@
-import Fastify, { FastifyInstance } from 'fastify';
+// Externals Modules
+import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+
+// Internals Modules
 import { UserModule } from '../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
+import { UserController } from '../../modules/user/presentation/controllers/user.controller';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -30,7 +34,7 @@ export class HttpServer {
 
   public registerRoutes(): void {
     // Health check route
-    this.instance.get('/', async (request, reply) => {
+    this.instance.get('/', async (request: FastifyRequest, _reply: FastifyReply): Promise<{ message: string; status: string; timestamp: string; correlationId: string; }> => {
       request.log.info('Health check requested');
 
       return {
@@ -42,12 +46,12 @@ export class HttpServer {
     });
 
     // Test logger endpoint
-    this.instance.get('/test-logger', async (request, reply) => {
+    this.instance.get('/test-logger', async (request: FastifyRequest, _reply: FastifyReply): Promise<{ message: string; correlationId: string; logLevels: string[]; timestamp: string; }> => {
       const log = request.log;
 
-      request.log.info('Testing logger functionality');
-      request.log.debug('Debug message with additional context');
-      request.log.warn('Warning message example');
+      log.info('Testing logger functionality');
+      log.debug('Debug message with additional context');
+      log.warn('Warning message example');
 
       return {
         message: 'Logger test completed successfully',
@@ -122,20 +126,21 @@ export class HttpServer {
       prettyPrint: process.env.NODE_ENV === 'development'
     });
 
-    this.instance.log.info('HTTP Server initialized', {
+    this.instance.log.info({
       nodeEnv: process.env.NODE_ENV,
       logLevel: process.env.LOG_LEVEL
-    });
+    }, 'HTTP Server initialized');
   }
 
   public async start(port: number, host: string): Promise<void> {
     try {
       await this.instance.listen({ port, host });
-      this.instance.log.info(`Server listening on http://${host}:${port}`, {
+      this.instance.log.info({
         port,
         host,
         pid: process.pid
-      });
+      }, `Server listening on http://${host}:${port}`,);
+
     } catch (err) {
       this.instance.log.error('Failed to start server');
       throw err;

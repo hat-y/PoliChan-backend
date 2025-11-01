@@ -1,3 +1,4 @@
+// External Modules
 import fp from 'fastify-plugin';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { randomUUID } from 'crypto';
@@ -5,6 +6,7 @@ import { randomUUID } from 'crypto';
 declare module 'fastify' {
   export interface FastifyRequest {
     correlationId: string;
+    startTime: number;
   }
 }
 
@@ -15,48 +17,26 @@ export interface LoggerOptions {
 
 async function loggerPlugin(fastify: FastifyInstance, options: LoggerOptions = {}) {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const logLevel = process.env.LOG_LEVEL || options.level || 'info';
+  const logLevel = process.env.LOG_LEVEL || options.level || 'debug';
   const prettyPrint = options.prettyPrint ?? isDevelopment;
 
-  // Fastify 5.x ya viene con logger pino integrado
-  // Configuramos el logger directamente en la instancia
   fastify.log.level = logLevel;
 
-  if (prettyPrint && !fastify.log.transport) {
-    fastify.log.transport = {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
-        messageFormat: '{correlationId} [{level}] {msg}',
-        customPrettifiers: {
-          time: (timestamp: string) => `🕒 ${new Date(timestamp).toLocaleTimeString()}`,
-          level: (logLevel: string) => {
-            const levels: Record<string, string> = {
-              trace: '🐛 TRACE',
-              debug: '🔍 DEBUG',
-              info: 'ℹ️  INFO',
-              warn: '⚠️  WARN',
-              error: '❌ ERROR',
-              fatal: '💀 FATAL'
-            };
-            return levels[logLevel] || logLevel.toUpperCase();
-          }
-        }
-      }
-    };
+  // Configurar transport para pretty print si es necesario
+  if (prettyPrint && isDevelopment) {
+    console.log('Logger configured with pretty print mode');
   }
 
-  // Hook para generar correlation IDs y configurar contexto
-  fastify.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-    // Usar el UUID nativo de Node.js (crypto.randomUUID())
+  // Genera correlation IDs y configura contexto
+  fastify.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const correlationId = (request.headers['x-request-id'] as string) || randomUUID();
+    const startTime = Date.now();
 
     request.correlationId = correlationId;
+    request.startTime = startTime;
     reply.header('X-Request-ID', correlationId);
 
-    // Agregar correlation ID al contexto del logger
+    // Agrega correlation ID al contexto del logger
     request.log = request.log.child({
       correlationId,
       method: request.method,
@@ -65,7 +45,8 @@ async function loggerPlugin(fastify: FastifyInstance, options: LoggerOptions = {
       userAgent: request.headers['user-agent']
     });
 
-    request.log.info('Incoming request', {
+    request.log.info({
+      event: 'Incoming request',
       method: request.method,
       url: request.url,
       ip: request.ip,
@@ -73,11 +54,13 @@ async function loggerPlugin(fastify: FastifyInstance, options: LoggerOptions = {
     });
   });
 
-  // Hook para log de respuestas
-  fastify.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply) => {
-    const responseTime = reply.getResponseTime?.() ?? 0;
+  // Log de respuestas
+  fastify.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    // Tiempo de Respuesta
+    const responseTime = Date.now() - request.startTime;
 
-    request.log.info('Response sent', {
+    request.log.info({
+      event: 'Response sent',
       statusCode: reply.statusCode,
       responseTime: `${responseTime.toFixed(2)}ms`,
       method: request.method,
@@ -85,9 +68,16 @@ async function loggerPlugin(fastify: FastifyInstance, options: LoggerOptions = {
     });
   });
 
-  // Hook para errores no manejados
-  fastify.addHook('onError', async (request: FastifyRequest, reply: FastifyReply, error: Error) => {
-    request.log.error('Unhandled error');
+  // Errores no manejados
+  fastify.addHook('onError', async (request: FastifyRequest, _reply: FastifyReply, error: Error): Promise<void> => {
+    request.log.error({
+      event: 'Unhandled error',
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      }
+    });
   });
 }
 
