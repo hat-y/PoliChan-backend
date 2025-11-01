@@ -1,6 +1,9 @@
 import Fastify, { FastifyInstance } from 'fastify';
+import fastifyEnv from '@fastify/env';
 import { UserModule } from '../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
+import { UserController } from '../../modules/user/presentation/controllers/user.controller';
+import { envSchema } from '../common/env/env.schema';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -11,16 +14,26 @@ export class HttpServer {
     this.instance = Fastify({
       logger: {
         level: process.env.LOG_LEVEL || 'info',
-        transport: isDevelopment ? {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname,reqId',
-            messageFormat: '{correlationId} [{level}] {msg}'
-          }
-        } : undefined
-      }
+        transport: isDevelopment
+          ? {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname,reqId',
+                messageFormat: '{correlationId} [{level}] {msg}',
+              },
+            }
+          : undefined,
+      },
+    });
+    this.instance.register(fastifyEnv, {
+      schema: envSchema,
+      dotenv: true,
+    });
+    this.instance.register(loggerPlugin, {
+      level: process.env.LOG_LEVEL || 'info',
+      prettyPrint: process.env.NODE_ENV === 'development',
     });
   }
 
@@ -37,7 +50,7 @@ export class HttpServer {
         message: 'Backend API',
         status: 'running',
         timestamp: new Date().toISOString(),
-        correlationId: request.correlationId
+        correlationId: request.correlationId,
       };
     });
 
@@ -53,7 +66,7 @@ export class HttpServer {
         message: 'Logger test completed successfully',
         correlationId: request.correlationId,
         logLevels: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     });
 
@@ -102,7 +115,7 @@ export class HttpServer {
           request.log.info('Users fetched successfully');
           return reply.status(200).send({
             users: result.data,
-            count: result.count
+            count: result.count,
           });
         } else {
           request.log.error('Failed to fetch users');
@@ -116,26 +129,28 @@ export class HttpServer {
   }
 
   public async initialize(): Promise<void> {
-    // Register logger plugin first
-    await this.instance.register(loggerPlugin, {
-      level: process.env.LOG_LEVEL || 'info',
-      prettyPrint: process.env.NODE_ENV === 'development'
-    });
+    await this.instance.ready();
 
-    this.instance.log.info('HTTP Server initialized', {
-      nodeEnv: process.env.NODE_ENV,
-      logLevel: process.env.LOG_LEVEL
-    });
+    this.instance.log.info(
+      {
+        nodeEnv: process.env.NODE_ENV,
+        logLevel: process.env.LOG_LEVEL,
+      },
+      'HTTP Server initialized'
+    );
   }
 
   public async start(port: number, host: string): Promise<void> {
     try {
       await this.instance.listen({ port, host });
-      this.instance.log.info(`Server listening on http://${host}:${port}`, {
-        port,
-        host,
-        pid: process.pid
-      });
+      this.instance.log.info(
+        {
+          port,
+          host,
+          pid: process.pid,
+        },
+        `Server listening on http://${host}:${port}`
+      );
     } catch (err) {
       this.instance.log.error('Failed to start server');
       throw err;

@@ -8,11 +8,11 @@ export class AppBootstrap {
   }
 
   public async initialize(): Promise<void> {
-    // Initialize HTTP server with logger first
-    await this.httpServer.initialize();
-
     // Register routes
     this.httpServer.registerRoutes();
+
+    // Initialize HTTP server with logger first
+    await this.httpServer.initialize();
   }
 
   public async start(): Promise<void> {
