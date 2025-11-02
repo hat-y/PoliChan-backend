@@ -1,11 +1,11 @@
-import { User } from '../../domain/user.entity';
-import { UserRepository } from '../../domain/user.repository';
+import { User } from '../../domain/entities/user.entity';
+import { UserRepository } from '../../domain/interfaces/user-repository.interface';
 
 export class InMemoryUserRepository implements UserRepository {
   private users: User[] = [];
 
   async save(user: User): Promise<void> {
-    const existingIndex = this.users.findIndex(u => u.id === user.id);
+    const existingIndex = this.users.findIndex((u) => u.id === user.id);
 
     if (existingIndex >= 0) {
       this.users[existingIndex] = user;
@@ -15,11 +15,11 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.users.find(u => u.id === id) || null;
+    return this.users.find((u) => u.id === id) || null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.users.find(u => u.email === email) || null;
+    return this.users.find((u) => u.email === email) || null;
   }
 
   async findAll(): Promise<User[]> {
@@ -27,11 +27,11 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    this.users = this.users.filter(u => u.id !== id);
+    this.users = this.users.filter((u) => u.id !== id);
   }
 
   async existsByEmail(email: string): Promise<boolean> {
-    return this.users.some(u => u.email === email);
+    return this.users.some((u) => u.email === email);
   }
 
   // Method for testing

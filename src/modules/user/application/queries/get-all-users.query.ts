@@ -1,5 +1,5 @@
-import { User } from '../../domain/user.entity';
-import { UserRepository } from '../../domain/user.repository';
+import { User } from '../../domain/entities/user.entity';
+import { UserRepository } from '../../domain/interfaces/user-repository.interface';
 
 export class GetAllUsersQuery {
   constructor(private readonly userRepository: UserRepository) {}
