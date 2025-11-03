@@ -1,5 +1,5 @@
 import { UserController } from './presentation/controllers/user.controller';
-import { CreateUserCommand } from './application/commands/create-user.command';
+import { CreateUserCommand } from './application/commands/register-user.command';
 import { GetAllUsersQuery } from './application/queries/get-all-users.query';
 import { InMemoryUserRepository } from './infrastructure/repositories/in-memory.repository';
 

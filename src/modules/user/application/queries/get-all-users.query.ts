@@ -1,10 +1,8 @@
-import { User } from '../../domain/entities/user.entity';
-import { UserRepository } from '../../domain/interfaces/user-repository.interface';
+import { Query } from '../../../../shared/domain/query';
 
-export class GetAllUsersQuery {
-  constructor(private readonly userRepository: UserRepository) {}
-
-  public async execute(): Promise<User[]> {
-    return await this.userRepository.findAll();
+// Query to Get All Users
+export class GetAllUsersQuery extends Query {
+  constructor(queryId: string) {
+    super(queryId);
   }
 }

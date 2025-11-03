@@ -34,7 +34,7 @@ export class User {
 }
 
 // Domain Event for User Creation
-export class UserCreatedEvent extends DomainEvent {
+export class UserRegisterEvent extends DomainEvent {
   constructor(
     eventId: string,
     public readonly userId: string,
@@ -42,5 +42,17 @@ export class UserCreatedEvent extends DomainEvent {
     public readonly name: string
   ) {
     super(eventId, userId, 'UserCreated');
+  }
+}
+
+// Domain Event for User Update
+export class UserUpdatedEvent extends DomainEvent {
+  constructor(
+    eventId: string,
+    public readonly userId: string,
+    public readonly email: string,
+    public readonly name: string
+  ) {
+    super(eventId, userId, 'UserUpdated');
   }
 }

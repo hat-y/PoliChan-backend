@@ -1,4 +1,7 @@
-import { CreateUserCommand, CreateUserRequest } from '../../application/commands/create-user.command';
+import {
+  CreateUserCommand,
+  CreateUserRequest,
+} from '../../application/commands/register-user.command';
 import { GetAllUsersQuery } from '../../application/queries/get-all-users.query';
 
 export class UserController {
@@ -13,14 +16,15 @@ export class UserController {
       return {
         success: true,
         data: user.toJSON(),
-        message: 'User created successfully'
+        message: 'User created successfully',
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
         error: errorMessage,
-        message: 'Failed to create user'
+        message: 'Failed to create user',
       };
     }
   }
@@ -28,19 +32,20 @@ export class UserController {
   async getAllUsers() {
     try {
       const users = await this.getAllUsersQuery.execute();
-      const usersData = users.map(user => user.toJSON());
+      const usersData = users.map((user) => user.toJSON());
       return {
         success: true,
         data: usersData,
         count: users.length,
-        message: 'Users retrieved successfully'
+        message: 'Users retrieved successfully',
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
         error: errorMessage,
-        message: 'Failed to get users'
+        message: 'Failed to get users',
       };
     }
   }
