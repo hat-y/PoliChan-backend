@@ -1,9 +1,14 @@
-import Fastify, { FastifyInstance } from 'fastify';
-import fastifyEnv from '@fastify/env';
-import { UserModule } from '../../../modules/user/user.module';
+// Externals Modules
+import Fastify, {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+} from 'fastify';
+
+// Internals Modules
+import { UserModule } from '../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
-import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
-import { envSchema } from '../common/env/env.schema';
+import { UserController } from '../../modules/user/presentation/controllers/user.controller';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -43,32 +48,54 @@ export class HttpServer {
 
   public registerRoutes(): void {
     // Health check route
-    this.instance.get('/', async (request, reply) => {
-      request.log.info('Health check requested');
+    this.instance.get(
+      '/',
+      async (
+        request: FastifyRequest,
+        _reply: FastifyReply
+      ): Promise<{
+        message: string;
+        status: string;
+        timestamp: string;
+        correlationId: string;
+      }> => {
+        request.log.info('Health check requested');
 
-      return {
-        message: 'Backend API',
-        status: 'running',
-        timestamp: new Date().toISOString(),
-        correlationId: request.correlationId,
-      };
-    });
+        return {
+          message: 'Backend API',
+          status: 'running',
+          timestamp: new Date().toISOString(),
+          correlationId: request.correlationId,
+        };
+      }
+    );
 
     // Test logger endpoint
-    this.instance.get('/test-logger', async (request, reply) => {
-      const log = request.log;
+    this.instance.get(
+      '/test-logger',
+      async (
+        request: FastifyRequest,
+        _reply: FastifyReply
+      ): Promise<{
+        message: string;
+        correlationId: string;
+        logLevels: string[];
+        timestamp: string;
+      }> => {
+        const log = request.log;
 
-      request.log.info('Testing logger functionality');
-      request.log.debug('Debug message with additional context');
-      request.log.warn('Warning message example');
+        log.info('Testing logger functionality');
+        log.debug('Debug message with additional context');
+        log.warn('Warning message example');
 
-      return {
-        message: 'Logger test completed successfully',
-        correlationId: request.correlationId,
-        logLevels: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
-        timestamp: new Date().toISOString(),
-      };
-    });
+        return {
+          message: 'Logger test completed successfully',
+          correlationId: request.correlationId,
+          logLevels: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'],
+          timestamp: new Date().toISOString(),
+        };
+      }
+    );
 
     // Initialize User Module
     const userController = UserModule.initialize();
@@ -149,7 +176,7 @@ export class HttpServer {
           host,
           pid: process.pid,
         },
-        `Server listening on http://localhost:${port}`
+        `Server listening on http://${host}:${port}`
       );
     } catch (err) {
       this.instance.log.error('Failed to start server');
