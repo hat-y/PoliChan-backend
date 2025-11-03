@@ -8,7 +8,7 @@ export class GetAllUsersQueryHandler
 {
   constructor(private userRepository: UserReadRepository) {}
 
-  async handler(query: GetAllUsersQuery): Promise<UserReadModel[]> {
+  async handle(query: GetAllUsersQuery): Promise<UserReadModel[]> {
     return await this.userRepository.findAll();
   }
 }

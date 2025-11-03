@@ -8,7 +8,7 @@ export class FindUserQueryHandler
 {
   constructor(private userRepository: UserReadRepository) {}
 
-  async handler(query: FindUserQuery): Promise<UserReadModel> {
+  async handle(query: FindUserQuery): Promise<UserReadModel> {
     const foundUser = await this.userRepository.findById(query.userId);
     if (!foundUser) {
       throw new Error(`User with ID ${query.userId} not found`);

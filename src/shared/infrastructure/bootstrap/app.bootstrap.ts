@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { HttpServer } from '../http/http.server';
 
 export class AppBootstrap {

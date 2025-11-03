@@ -13,7 +13,7 @@ export class UpdatedUserCommandHandler
     private messageBus: MessageBus
   ) {}
 
-  async handler(command: UpdateUserCommand): Promise<void> {
+  async handle(command: UpdateUserCommand): Promise<void> {
     const foundUser = await this.userRepository.findById(command.userId);
     if (!foundUser) {
       throw new Error('User not found');
@@ -29,6 +29,6 @@ export class UpdatedUserCommandHandler
       updatedUser.name
     );
 
-    this.messageBus.publishEvent(event);
+    this.messageBus.publishEventAsync(event);
   }
 }

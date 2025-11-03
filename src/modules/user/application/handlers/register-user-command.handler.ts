@@ -13,7 +13,7 @@ export class RegisterUserCommandHandler
     private messageBus: MessageBus
   ) {}
 
-  async handler(command: RegisterUserCommand): Promise<void> {
+  async handle(command: RegisterUserCommand): Promise<void> {
     const existingUser = await this.userRepository.findByEmail(command.email);
     if (existingUser) {
       throw new Error('User with this email already exists');
@@ -29,6 +29,6 @@ export class RegisterUserCommandHandler
       newUser.name
     );
 
-    this.messageBus.publishEvent(event);
+    this.messageBus.publishEventAsync(event);
   }
 }

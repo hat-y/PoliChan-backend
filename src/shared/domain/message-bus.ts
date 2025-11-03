@@ -18,14 +18,16 @@ export interface MessageBus {
 
   registerEventHandler<TEvent extends DomainEvent>(
     name: string,
-    handler: EventHandler<TEvent>
+    handler: EventHandler<TEvent>[]
   ): void;
 
   executeCommand<TCommand extends Command>(command: TCommand): Promise<void>;
 
   executeQuery<TQuery extends Query, TResult>(query: TQuery): Promise<TResult>;
 
-  publishEvent<TEvent extends DomainEvent>(event: TEvent): void;
+  publishEvent<TEvent extends DomainEvent>(event: TEvent): Promise<void>;
+
+  publishEventAsync<TEvent extends DomainEvent>(event: TEvent): void;
 
   processEventQueue(): void;
 

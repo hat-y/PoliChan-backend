@@ -1,20 +1,20 @@
 import { UserController } from './presentation/controllers/user.controller';
-import { CreateUserCommand } from './application/commands/register-user.command';
+import { RegisterUserCommand } from './application/commands/register-user.command';
 import { GetAllUsersQuery } from './application/queries/get-all-users.query';
 import { InMemoryUserRepository } from './infrastructure/repositories/in-memory.repository';
 
 export class UserModule {
   private static userRepository: InMemoryUserRepository;
-  private static createUserCommand: CreateUserCommand;
+  private static registerUserCommand: RegisterUserCommand;
   private static getAllUsersQuery: GetAllUsersQuery;
   private static userController: UserController;
 
   public static initialize(): UserController {
     this.userRepository = new InMemoryUserRepository();
-    this.createUserCommand = new CreateUserCommand(this.userRepository);
+    this.registerUserCommand = new RegisterUserCommand(this.userRepository);
     this.getAllUsersQuery = new GetAllUsersQuery(this.userRepository);
     this.userController = new UserController(
-      this.createUserCommand,
+      this.registerUserCommand,
       this.getAllUsersQuery
     );
 
