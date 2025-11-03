@@ -107,54 +107,25 @@ export class HttpServer {
   }
 
   private registerUserRoutes(userController: UserController): void {
-    // POST /api/users - Create user
-    this.instance.post('/api/users', async (request, reply) => {
-      const userData = request.body as any;
+    // POST /api/users - Crear usuario
+    this.instance.post('/api/users', (req, reply) =>
+      userController.registerUser(req, reply)
+    );
 
-      request.log.info('Creating new user');
+    // PUT /api/users/:userId - Actualizar usuario
+    this.instance.put('/api/users/:userId', (req, reply) =>
+      userController.updateUser(req, reply)
+    );
 
-      try {
-        const result = await userController.createUser(userData);
+    // GET /api/users/:userId - Buscar usuario por ID
+    this.instance.get('/api/users/:userId', (req, reply) =>
+      userController.findUser(req, reply)
+    );
 
-        if (result.success) {
-          request.log.info('User created successfully');
-          return reply.status(201).send(result.data);
-        } else {
-          request.log.warn('User creation failed');
-
-          if (result.error && result.error.includes('already exists')) {
-            return reply.status(409).send({ error: result.error });
-          }
-          return reply.status(400).send({ error: result.error });
-        }
-      } catch (error) {
-        request.log.error('Unexpected error creating user');
-        return reply.status(500).send({ error: 'Internal server error' });
-      }
-    });
-
-    // GET /api/users - Get all users
-    this.instance.get('/api/users', async (request, reply) => {
-      request.log.info('Fetching all users');
-
-      try {
-        const result = await userController.getAllUsers();
-
-        if (result.success) {
-          request.log.info('Users fetched successfully');
-          return reply.status(200).send({
-            users: result.data,
-            count: result.count,
-          });
-        } else {
-          request.log.error('Failed to fetch users');
-          return reply.status(500).send({ error: result.error });
-        }
-      } catch (error) {
-        request.log.error('Unexpected error fetching users');
-        return reply.status(500).send({ error: 'Internal server error' });
-      }
-    });
+    // GET /api/users - Obtener todos los usuarios
+    this.instance.get('/api/users', (req, reply) =>
+      userController.getAllUsers(req, reply)
+    );
   }
 
   public async initialize(): Promise<void> {
