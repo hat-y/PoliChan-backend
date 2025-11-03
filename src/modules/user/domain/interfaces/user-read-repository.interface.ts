@@ -1,7 +1,7 @@
 import { UserReadModel } from './user-read-model.interface';
 
 // User Read Repository Interface
-export interface UserRepository {
+export interface UserReadRepository {
   // save(user: User): Promise<void>;
   // findByEmail(email: string): Promise<User | null>;
   // findAll(): Promise<User[]>;
