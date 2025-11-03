@@ -4,11 +4,13 @@ import Fastify, {
   FastifyReply,
   FastifyRequest,
 } from 'fastify';
+import fastifyEnv from '@fastify/env';
+import { envSchema } from '../common/env/env.schema';
 
 // Internals Modules
-import { UserModule } from '../../modules/user/user.module';
+import { UserModule } from '../../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
-import { UserController } from '../../modules/user/presentation/controllers/user.controller';
+import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -176,7 +178,7 @@ export class HttpServer {
           host,
           pid: process.pid,
         },
-        `Server listening on http://${host}:${port}`
+        `Server listening on http://localhost:${port}`
       );
     } catch (err) {
       this.instance.log.error('Failed to start server');
