@@ -11,8 +11,10 @@ export class PostgresUserWriteRepository implements UserWriteRepository {
       this.writeDataBase.connection.getRepository(UserPostgresEntity);
     const entity = repo.create({
       id: user.id,
-      email: user.email,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userName: user.userName,
+      password: user.password,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     });
@@ -26,23 +28,27 @@ export class PostgresUserWriteRepository implements UserWriteRepository {
     return entity
       ? new User(
           entity.id,
-          entity.email,
-          entity.name,
+          entity.firstName,
+          entity.lastName,
+          entity.userName,
+          entity.password,
           entity.createdAt,
           entity.updatedAt
         )
       : null;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByUserName(userName: string): Promise<User | null> {
     const repo =
       this.writeDataBase.connection.getRepository(UserPostgresEntity);
-    const entity = await repo.findOneBy({ email });
+    const entity = await repo.findOneBy({ userName });
     return entity
       ? new User(
           entity.id,
-          entity.email,
-          entity.name,
+          entity.firstName,
+          entity.lastName,
+          entity.userName,
+          entity.password,
           entity.createdAt,
           entity.updatedAt
         )

@@ -11,20 +11,34 @@ export class UserController {
 
   async registerUser(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
-      const { email, name } = req.body as { email?: string; name?: string };
+      const { firstName, lastName, userName, password } = req.body as {
+        firstName?: string;
+        lastName?: string;
+        userName?: string;
+        password?: string;
+      };
 
-      if (!email || !name) {
-        reply.status(400).send({ error: 'Email and name are required' });
+      if (!firstName || !lastName || !userName || !password) {
+        reply.status(400).send({
+          error: 'firstName, lastName, userName y password son requeridos',
+        });
         return;
       }
 
       const userId = v4();
-      const command = new RegisterUserCommand(v4(), userId, email, name);
+      const command = new RegisterUserCommand(
+        v4(),
+        userId,
+        firstName,
+        lastName,
+        userName,
+        password
+      );
 
       await this.messageBus.executeCommand(command);
 
       reply.status(201).send({
-        message: 'User created successfully',
+        message: 'Usuario creado exitosamente',
       });
     } catch (error) {
       reply.status(500).send({
@@ -36,19 +50,23 @@ export class UserController {
   async updateUser(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       const { userId } = req.params as { userId: string };
-      const { name } = req.body as { name?: string };
+      const { userName } = req.body as {
+        userName?: string;
+      };
 
-      if (!name) {
-        reply.status(400).send({ error: 'Name is required' });
+      if (!userName) {
+        reply
+          .status(400)
+          .send({ error: 'firstName, lastName y userName son requeridos' });
         return;
       }
 
-      const command = new UpdateUserCommand(v4(), userId, name);
+      const command = new UpdateUserCommand(v4(), userId, userName);
 
       await this.messageBus.executeCommand(command);
 
       reply.status(200).send({
-        message: 'User updated successfully',
+        message: 'Usuario actualizado exitosamente',
       });
     } catch (error) {
       reply.status(500).send({
@@ -66,10 +84,13 @@ export class UserController {
       const user = await this.messageBus.executeQuery(query);
 
       if (!user) {
-        reply.status(404).send({ error: `User with id ${userId} not found` });
+        reply
+          .status(404)
+          .send({ error: `Usuario con id ${userId} no encontrado` });
         return;
       }
 
+      // El read model solo debe devolver fullName, userName, etc.
       reply.status(200).send(user);
     } catch (error) {
       reply.status(500).send({
@@ -84,6 +105,7 @@ export class UserController {
 
       const users = await this.messageBus.executeQuery(query);
 
+      // El read model solo debe devolver fullName, userName, etc.
       reply.status(200).send(users);
     } catch (error) {
       reply.status(500).send({

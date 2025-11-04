@@ -4,11 +4,15 @@ export class RegisterUserCommand extends Command {
   constructor(
     commandId: string,
     public readonly userId: string,
-    public readonly email: string,
-    public readonly name: string
+    public readonly firstName: string,
+    public readonly lastName: string,
+    public readonly userName: string,
+    public readonly password: string
   ) {
     super(commandId);
-    this.email = email;
-    this.name = name;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.userName = userName;
+    this.password = password;
   }
 }

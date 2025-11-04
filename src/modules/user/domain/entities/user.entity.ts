@@ -4,29 +4,54 @@ import { DomainEvent } from '../../../../shared/domain/event';
 export class User {
   constructor(
     public readonly id: string,
-    public readonly email: string,
-    public readonly name: string,
+    public readonly firstName: string,
+    public readonly lastName: string,
+    public readonly userName: string,
+    public readonly password: string,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  public static create(id: string, email: string, name: string): User {
-    return new User(id, email, name);
+  public static create(
+    id: string,
+    firstName: string,
+    lastName: string,
+    userName: string,
+    password: string
+  ): User {
+    return new User(id, firstName, lastName, userName, password);
   }
 
   public updateEmail(newEmail: string): User {
-    return new User(this.id, newEmail, this.name, this.updatedAt, new Date());
+    return new User(
+      this.id,
+      this.firstName,
+      this.lastName,
+      newEmail,
+      this.password,
+      this.createdAt,
+      new Date()
+    );
   }
 
   public updateName(newName: string): User {
-    return new User(this.id, this.email, newName, this.updatedAt, new Date());
+    return new User(
+      this.id,
+      newName,
+      this.lastName,
+      this.userName,
+      this.password,
+      this.createdAt,
+      new Date()
+    );
   }
 
   public toJSON() {
     return {
       id: this.id,
-      email: this.email,
-      name: this.name,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      userName: this.userName,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -38,8 +63,10 @@ export class UserRegisterEvent extends DomainEvent {
   constructor(
     eventId: string,
     public readonly userId: string,
-    public readonly email: string,
-    public readonly name: string
+    public readonly firstName: string,
+    public readonly lastName: string,
+    public readonly userName: string,
+    public readonly password: string
   ) {
     super(eventId, userId, 'UserCreated');
   }
@@ -50,8 +77,7 @@ export class UserUpdatedEvent extends DomainEvent {
   constructor(
     eventId: string,
     public readonly userId: string,
-    public readonly email: string,
-    public readonly name: string
+    public readonly userName: string
   ) {
     super(eventId, userId, 'UserUpdated');
   }

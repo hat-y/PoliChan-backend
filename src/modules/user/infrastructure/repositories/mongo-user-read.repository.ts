@@ -13,23 +13,25 @@ export class MongoUserReadRepository implements UserReadRepository {
     return user
       ? {
           id: user._id.toString(),
-          email: user.email,
-          name: user.name,
+          fullName: `${user.firstName} ${user.lastName}`,
+          userName: user.userName,
+          password: user.password,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         }
       : null;
   }
 
-  async finByEmail(email: string): Promise<UserReadModel | null> {
+  async finByUserName(userName: string): Promise<UserReadModel | null> {
     const userRepo =
       this.readDataBase.connection.getMongoRepository(UserMongoEntity);
-    const user = await userRepo.findOneBy({ email });
+    const user = await userRepo.findOneBy({ userName });
     return user
       ? {
           id: user._id.toString(),
-          email: user.email,
-          name: user.name,
+          fullName: `${user.firstName} ${user.lastName}`,
+          userName: user.userName,
+          password: user.password,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         }
@@ -42,37 +44,46 @@ export class MongoUserReadRepository implements UserReadRepository {
     const users = await userRepo.find();
     return users.map((user) => ({
       id: user._id.toString(),
-      email: user.email,
-      name: user.name,
+      fullName: `${user.firstName} ${user.lastName}`,
+      userName: user.userName,
+      password: user.password,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }));
   }
 
-  async save(user: UserReadModel): Promise<void> {
-    let userRepo;
-    const userExists = await this.findById(user.id);
+  async save(user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+    password: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Promise<void> {
+    const userRepo =
+      this.readDataBase.connection.getMongoRepository(UserMongoEntity);
+    const userExists = await userRepo.findOneBy({ id: user.id });
     if (!userExists) {
-      userRepo =
-        this.readDataBase.connection.getMongoRepository(UserMongoEntity);
       await userRepo.insertOne({
         id: user.id,
-        email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userName: user.userName,
+        password: user.password,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       });
+    } else {
+      await userRepo.updateOne(
+        { id: user.id },
+        {
+          $set: {
+            userName: user.userName,
+            updatedAt: user.updatedAt,
+          },
+        }
+      );
     }
-
-    userRepo = this.readDataBase.connection.getMongoRepository(UserMongoEntity);
-    await userRepo.updateOne(
-      { _id: user.id },
-      {
-        $set: {
-          name: user.name,
-          updatedAt: user.updatedAt,
-        },
-      }
-    );
   }
 }

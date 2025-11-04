@@ -11,11 +11,17 @@ export class UserPostgresEntity {
   @PrimaryColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', unique: true })
-  email: string;
+  @Column({ type: 'varchar' })
+  firstName: string;
 
   @Column({ type: 'varchar' })
-  name: string;
+  lastName: string;
+
+  @Column({ type: 'varchar' })
+  userName: string;
+
+  @Column({ type: 'varchar' })
+  password: string;
 
   @CreateDateColumn()
   createdAt: Date;

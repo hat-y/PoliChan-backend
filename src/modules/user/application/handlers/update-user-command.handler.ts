@@ -19,14 +19,13 @@ export class UpdatedUserCommandHandler
       throw new Error('User not found');
     }
 
-    const updatedUser = foundUser.updateName(command.name);
+    const updatedUser = foundUser.updateName(command.userName);
     await this.userRepository.save(updatedUser);
 
     const event = new UserUpdatedEvent(
       v4(),
       updatedUser.id,
-      updatedUser.email,
-      updatedUser.name
+      updatedUser.userName
     );
 
     this.messageBus.publishEventAsync(event);

@@ -5,6 +5,6 @@ import { UserReadModel } from './user-read-model.interface';
 export interface UserReadRepository {
   findById(id: string): Promise<UserReadModel | null>;
   findAll(): Promise<UserReadModel[]>;
-  finByEmail(email: string): Promise<UserReadModel | null>;
+  finByUserName(userName: string): Promise<UserReadModel | null>;
   save(user: User): Promise<void>;
 }

@@ -14,19 +14,29 @@ export class RegisterUserCommandHandler
   ) {}
 
   async handle(command: RegisterUserCommand): Promise<void> {
-    const existingUser = await this.userRepository.findByEmail(command.email);
+    const existingUser = await this.userRepository.findByUserName(
+      command.userName
+    );
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
-    const newUser = User.create(command.userId, command.email, command.name);
+    const newUser = User.create(
+      command.userId,
+      command.firstName,
+      command.lastName,
+      command.userName,
+      command.password
+    );
     await this.userRepository.save(newUser);
 
     // Publish User Registered Event
     const event = new UserRegisterEvent(
       v4(),
       newUser.id,
-      newUser.email,
-      newUser.name
+      newUser.firstName,
+      newUser.lastName,
+      newUser.userName,
+      newUser.password
     );
 
     this.messageBus.publishEventAsync(event);

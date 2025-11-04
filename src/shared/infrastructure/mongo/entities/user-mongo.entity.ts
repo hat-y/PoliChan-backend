@@ -12,11 +12,17 @@ export class UserMongoEntity {
   @ObjectIdColumn()
   _id!: ObjectId;
 
-  @Column({ type: 'string', unique: true })
-  email!: string;
+  @Column()
+  firstName!: string;
 
-  @Column({ type: 'string' })
-  name!: string;
+  @Column()
+  lastName!: string;
+
+  @Column()
+  userName!: string;
+
+  @Column()
+  password!: string;
 
   @CreateDateColumn()
   createdAt!: Date;
