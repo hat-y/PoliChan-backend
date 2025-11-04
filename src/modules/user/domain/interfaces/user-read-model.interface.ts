@@ -1,6 +1,7 @@
 export interface UserReadModel {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   userName: string;
   password: string;
   createdAt: Date;

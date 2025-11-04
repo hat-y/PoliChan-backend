@@ -10,23 +10,23 @@ import { ObjectId } from 'mongodb';
 @Entity('users')
 export class UserMongoEntity {
   @ObjectIdColumn()
-  _id!: ObjectId;
+  _id: ObjectId;
 
-  @Column()
-  firstName!: string;
+  @Column('text')
+  firstName: string;
 
-  @Column()
-  lastName!: string;
+  @Column('text')
+  lastName: string;
 
-  @Column()
-  userName!: string;
+  @Column('text')
+  userName: string;
 
-  @Column()
-  password!: string;
+  @Column('text')
+  password: string;
 
   @CreateDateColumn()
-  createdAt!: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt!: Date;
+  updatedAt: Date;
 }

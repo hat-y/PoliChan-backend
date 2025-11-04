@@ -13,7 +13,8 @@ export class MongoUserReadRepository implements UserReadRepository {
     return user
       ? {
           id: user._id.toString(),
-          fullName: `${user.firstName} ${user.lastName}`,
+          firstName: user.firstName,
+          lastName: user.lastName,
           userName: user.userName,
           password: user.password,
           createdAt: user.createdAt,
@@ -29,7 +30,8 @@ export class MongoUserReadRepository implements UserReadRepository {
     return user
       ? {
           id: user._id.toString(),
-          fullName: `${user.firstName} ${user.lastName}`,
+          firstName: user.firstName,
+          lastName: user.lastName,
           userName: user.userName,
           password: user.password,
           createdAt: user.createdAt,
@@ -44,7 +46,8 @@ export class MongoUserReadRepository implements UserReadRepository {
     const users = await userRepo.find();
     return users.map((user) => ({
       id: user._id.toString(),
-      fullName: `${user.firstName} ${user.lastName}`,
+      firstName: user.firstName,
+      lastName: user.lastName,
       userName: user.userName,
       password: user.password,
       createdAt: user.createdAt,
@@ -52,15 +55,7 @@ export class MongoUserReadRepository implements UserReadRepository {
     }));
   }
 
-  async save(user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    userName: string;
-    password: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }): Promise<void> {
+  async save(user: UserReadModel): Promise<void> {
     const userRepo =
       this.readDataBase.connection.getMongoRepository(UserMongoEntity);
     const userExists = await userRepo.findOneBy({ id: user.id });

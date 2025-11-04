@@ -14,6 +14,7 @@ export class ReadDatabase {
         url: process.env.MONGODB_URI,
         entities: [UserMongoEntity],
         synchronize: true, // Solo para desarrollo
+        logging: true,
       });
     }
     if (!this.db.isInitialized) {
