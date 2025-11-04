@@ -5,11 +5,12 @@ import { PostPostgresEntity } from '../../../../shared/infrastructure/postgres/e
 import { Timestamps } from '../../../../shared/domain/datetime';
 
 export class PostgresPostWriteRepository implements PostWriteRepository {
-  constructor(private writeDataBase: WriteDatabase) {}
+  constructor(
+    private writeDataBase: WriteDatabase
+  ) { }
 
   async save(post: Post): Promise<void> {
-    const repo =
-      this.writeDataBase.connection.getRepository(PostPostgresEntity);
+    const repo = this.writeDataBase.connection.getRepository(PostPostgresEntity);
     const entity = repo.create({
       id: post.id,
       userId: post.userId,
