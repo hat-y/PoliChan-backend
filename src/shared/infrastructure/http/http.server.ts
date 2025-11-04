@@ -159,7 +159,7 @@ export class HttpServer {
   public async start(port: number, host: string): Promise<void> {
     try {
       await this.instance.listen({ port, host });
-      this.instance.log.info(`Server listening on http://${host}:${port}`);
+      this.instance.log.info(`Server listening on http://localhost:${port}`);
     } catch (err) {
       this.instance.log.error('Failed to start server');
       throw err;
