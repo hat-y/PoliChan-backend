@@ -14,6 +14,8 @@ export const envSchema = {
     'MONGODB_PORT',
     'MONGO_INITDB_ROOT_USERNAME',
     'MONGO_INITDB_ROOT_PASSWORD',
+    'FRONTEND_URL',
+    'JWT_SECRET',
   ],
   properties: {
     NODE_ENV: { type: 'string' },
@@ -31,5 +33,7 @@ export const envSchema = {
     MONGODB_PORT: { type: 'string' },
     MONGO_INITDB_ROOT_USERNAME: { type: 'string' },
     MONGO_INITDB_ROOT_PASSWORD: { type: 'string' },
+    FRONTEND_URL: { type: 'string' },
+    JWT_SECRET: { type: 'string' },
   },
 };
