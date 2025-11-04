@@ -92,16 +92,19 @@ export class HttpServer {
   }
 
   private registerUserRoutes(userController: UserController): void {
-    this.instance.post('/api/users', (req, reply) =>
+    this.instance.post('/api/user/register', (req, reply) =>
       userController.registerUser(req, reply)
     );
-    this.instance.put('/api/users/:userId', (req, reply) =>
+    this.instance.post('/api/user/login', (req, reply) =>
+      userController.loginUser(req, reply)
+    );
+    this.instance.put('/api/user/:userId', (req, reply) =>
       userController.updateUser(req, reply)
     );
-    this.instance.get('/api/users/:userId', (req, reply) =>
+    this.instance.get('/api/user/:userId', (req, reply) =>
       userController.findUser(req, reply)
     );
-    this.instance.get('/api/users', (req, reply) =>
+    this.instance.get('/api/user', (req, reply) =>
       userController.getAllUsers(req, reply)
     );
   }

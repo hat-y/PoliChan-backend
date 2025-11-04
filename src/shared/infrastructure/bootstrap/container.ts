@@ -10,6 +10,7 @@ import { InMemoryMessageBus } from '../in-memory-message-bus';
 import { ReadDatabase } from '../mongo/read-database';
 import { WriteDatabase } from '../postgres/write-database';
 import { UpdatedUserCommandHandler } from '../../../modules/user/application/handlers/update-user-command.handler';
+import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
 
 export class Container {
   public messageBus: MessageBus;
@@ -52,6 +53,11 @@ export class Container {
     this.messageBus.registerQueryHandler(
       'GetAllUsersQuery',
       new GetAllUsersQueryHandler(userReadRepository)
+    );
+
+    this.messageBus.registerQueryHandler(
+      'LoginUserQuery',
+      new LoginUserQueryHandler(userReadRepository)
     );
 
     this.messageBus.registerEventHandler('UserRegisteredEvent', [

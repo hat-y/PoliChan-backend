@@ -5,6 +5,7 @@ import { RegisterUserCommand } from '../../application/commands/register-user.co
 import { UpdateUserCommand } from '../../application/commands/update-user.command';
 import { FindUserQuery } from '../../application/queries/find-user.query';
 import { GetAllUsersQuery } from '../../application/queries/get-all-users.query';
+import { LoginUserQuery } from '../../application/queries/login-user.query';
 
 export class UserController {
   constructor(private messageBus: MessageBus) {}
@@ -39,6 +40,36 @@ export class UserController {
 
       reply.status(201).send({
         message: 'Usuario creado exitosamente',
+      });
+    } catch (error) {
+      reply.status(500).send({
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async loginUser(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      const { userName, password } = req.body as {
+        userName?: string;
+        password?: string;
+      };
+      if (!userName || !password) {
+        reply.status(400).send({ error: 'userName y password son requeridos' });
+        return;
+      }
+
+      const query = new LoginUserQuery(v4(), userName, password);
+      const user = await this.messageBus.executeQuery(query);
+
+      if (!user) {
+        reply.status(401).send({ error: 'Credenciales inválidas' });
+        return;
+      }
+
+      reply.status(200).send({
+        message: 'Usuario autenticado exitosamente',
+        user,
       });
     } catch (error) {
       reply.status(500).send({
