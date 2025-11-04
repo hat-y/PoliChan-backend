@@ -1,5 +1,5 @@
 import { CommandHandler } from '../../../../shared/domain/command-handler';
-import { User, UserRegisterEvent } from '../../domain/entities/user.entity';
+import { User, UserRegisteredEvent } from '../../domain/entities/user.entity';
 import { UserWriteRepository } from '../../domain/interfaces/user-write-repository.inferface';
 import { RegisterUserCommand } from '../commands/register-user.command';
 import { MessageBus } from '../../../../shared/domain/message-bus';
@@ -14,11 +14,12 @@ export class RegisterUserCommandHandler
   ) {}
 
   async handle(command: RegisterUserCommand): Promise<void> {
+    console.log('Handling RegisterUserCommand:', command);
     const existingUser = await this.userRepository.findByUserName(
       command.userName
     );
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new Error('User with this userName already exists');
     }
     const newUser = User.create(
       command.userId,
@@ -30,7 +31,7 @@ export class RegisterUserCommandHandler
     await this.userRepository.save(newUser);
 
     // Publish User Registered Event
-    const event = new UserRegisterEvent(
+    const event = new UserRegisteredEvent(
       v4(),
       newUser.id,
       newUser.firstName,

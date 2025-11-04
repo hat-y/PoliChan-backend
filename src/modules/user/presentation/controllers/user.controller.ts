@@ -105,7 +105,6 @@ export class UserController {
 
       const users = await this.messageBus.executeQuery(query);
 
-      // El read model solo debe devolver fullName, userName, etc.
       reply.status(200).send(users);
     } catch (error) {
       reply.status(500).send({

@@ -6,7 +6,20 @@ export class UserUpdatedEventHandler implements EventHandler<UserUpdatedEvent> {
   constructor(private userRepository: UserReadRepository) {}
 
   async handle(event: UserUpdatedEvent): Promise<void> {
-    const user = User.create(event.userId, event.email, event.name);
+    // Busca el usuario actual en el read model
+    const existingUser = await this.userRepository.findById(event.userId);
+    if (!existingUser) {
+      throw new Error('User not found in read model');
+    }
+
+    // Usa los datos existentes para los campos que faltan
+    const user = User.create(
+      event.userId,
+      existingUser.firstName,
+      existingUser.lastName,
+      event.userName,
+      existingUser.password
+    );
     await this.userRepository.save(user);
   }
 }

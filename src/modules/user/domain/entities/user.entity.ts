@@ -59,7 +59,7 @@ export class User {
 }
 
 // Domain Event for User Creation
-export class UserRegisterEvent extends DomainEvent {
+export class UserRegisteredEvent extends DomainEvent {
   constructor(
     eventId: string,
     public readonly userId: string,

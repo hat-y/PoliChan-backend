@@ -44,6 +44,7 @@ export class MongoUserReadRepository implements UserReadRepository {
     const userRepo =
       this.readDataBase.connection.getMongoRepository(UserMongoEntity);
     const users = await userRepo.find();
+    console.log('MongoUserReadRepository.findAll retrieved users:', users);
     return users.map((user) => ({
       id: user._id.toString(),
       firstName: user.firstName,
@@ -56,6 +57,7 @@ export class MongoUserReadRepository implements UserReadRepository {
   }
 
   async save(user: UserReadModel): Promise<void> {
+    console.log('MongoUserReadRepository.save called with user:', user);
     const userRepo =
       this.readDataBase.connection.getMongoRepository(UserMongoEntity);
     const userExists = await userRepo.findOneBy({ id: user.id });
