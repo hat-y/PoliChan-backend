@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import Fastify, {
   FastifyInstance,
   FastifyReply,
@@ -12,6 +11,7 @@ import { UserModule } from '../../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 import { MessageBus } from '../../domain/message-bus';
+import { getLoggerOptions } from '../common/logger/logger.options';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -20,28 +20,9 @@ export class HttpServer {
 
   constructor(messageBus: MessageBus) {
     this.messageBus = messageBus;
-    const isDevelopment = process.env.NODE_ENV === 'development';
 
-    this.instance = Fastify({
-      logger: {
-        level: process.env.LOG_LEVEL || 'info',
-        transport: isDevelopment
-          ? {
-              target: 'pino-pretty',
-              options: {
-                colorize: true,
-                translateTime: 'HH:MM:ss Z',
-                ignore: 'pid,hostname,reqId',
-                messageFormat: '{correlationId} [{level}] {msg}',
-              },
-            }
-          : undefined,
-      },
-    });
-    this.instance.register(fastifyEnv, {
-      schema: envSchema,
-      dotenv: true,
-    });
+    this.instance = Fastify({ logger: getLoggerOptions() });
+
     this.instance.register(loggerPlugin, {
       level: process.env.LOG_LEVEL || 'info',
       prettyPrint: process.env.NODE_ENV === 'development',

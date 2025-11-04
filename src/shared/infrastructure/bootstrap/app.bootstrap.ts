@@ -1,6 +1,3 @@
-import 'reflect-metadata';
-import * as dotenv from 'dotenv';
-dotenv.config();
 import { HttpServer } from '../http/http.server';
 import { MessageBus } from '../../domain/message-bus';
 
@@ -14,7 +11,6 @@ export class AppBootstrap {
   public async initialize(): Promise<void> {
     // Primero registra las rutas
     await this.httpServer.registerRoutes();
-
     // Luego inicializa Fastify (ready)
     await this.httpServer.initialize();
   }

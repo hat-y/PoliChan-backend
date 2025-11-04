@@ -1,10 +1,21 @@
-import 'reflect-metadata';
+// server.ts
+import Fastify from 'fastify';
+import fastifyEnv from '@fastify/env';
+import { envSchema } from './shared/infrastructure/common/env/env.schema';
 import { AppBootstrap } from './shared/infrastructure/bootstrap/app.bootstrap';
 import { Container } from './shared/infrastructure/bootstrap/container';
 
 const bootstrap = async (): Promise<void> => {
   try {
-    console.log('Starting application bootstrap...');
+    // 1. Inicializa Fastify y fastifyEnv primero
+    const fastify = Fastify();
+    fastify.register(fastifyEnv, {
+      schema: envSchema,
+      dotenv: true,
+    });
+
+    await fastify.ready();
+
     const container = new Container();
     await container.initiliaze();
 
