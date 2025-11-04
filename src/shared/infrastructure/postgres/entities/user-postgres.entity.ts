@@ -8,13 +8,13 @@ import {
 
 @Entity('users')
 export class UserPostgresEntity {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   email: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   name: string;
 
   @CreateDateColumn()

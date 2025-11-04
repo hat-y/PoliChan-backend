@@ -19,7 +19,7 @@ services:
       - mongolo
 
   postgres:
-    image: postgres:13
+    image: postgres:latest
     container_name: polichan-postgres
     restart: unless-stopped
     environment:
@@ -29,7 +29,7 @@ services:
     ports:
       - '${POSTGRES_PORT}:5432'
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
 
   mongolo:
     image: mongo:latest

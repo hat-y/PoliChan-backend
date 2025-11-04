@@ -2,36 +2,35 @@ import { DataSource } from 'typeorm';
 import { UserMongoEntity } from './entities/user-mongo.entity';
 
 export class ReadDatabase {
-  private db: DataSource;
+  private db: DataSource | undefined;
   private initialized: boolean = false;
 
   constructor() {}
 
   public async initialize(): Promise<void> {
-    if (!this.db?.isInitialized) {
+    if (!this.db) {
       this.db = new DataSource({
         type: 'mongodb',
-        host: process.env.MONGODB_HOST || 'localhost',
-        port: Number(process.env.MONGODB_PORT) || 27017,
-        database: process.env.MONGODB_DB || 'polichan',
-        username: process.env.MONGO_INITDB_ROOT_USERNAME || 'root',
-        password: process.env.MONGO_INITDB_ROOT_PASSWORD || 'root',
+        url: process.env.MONGODB_URI,
         entities: [UserMongoEntity],
         synchronize: true, // Solo para desarrollo
       });
+    }
+    if (!this.db.isInitialized) {
       await this.db.initialize();
       this.initialized = true;
     }
   }
 
   public async close(): Promise<void> {
-    if (this.db?.isInitialized) {
+    if (this.db && this.db.isInitialized) {
       await this.db.destroy();
       this.initialized = false;
     }
   }
 
   get connection() {
+    if (!this.db) throw new Error('Database not initialized');
     return this.db;
   }
 }

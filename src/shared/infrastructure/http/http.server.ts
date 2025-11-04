@@ -1,4 +1,4 @@
-// Externals Modules
+import 'reflect-metadata';
 import Fastify, {
   FastifyInstance,
   FastifyReply,
@@ -11,11 +11,15 @@ import { envSchema } from '../common/env/env.schema';
 import { UserModule } from '../../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
+import { MessageBus } from '../../domain/message-bus';
 
 export class HttpServer {
   private instance: FastifyInstance;
+  private userController?: UserController;
+  private messageBus: MessageBus;
 
-  constructor() {
+  constructor(messageBus: MessageBus) {
+    this.messageBus = messageBus;
     const isDevelopment = process.env.NODE_ENV === 'development';
 
     this.instance = Fastify({
@@ -48,7 +52,7 @@ export class HttpServer {
     return this.instance;
   }
 
-  public registerRoutes(): void {
+  public async registerRoutes(): Promise<void> {
     // Health check route
     this.instance.get(
       '/',
@@ -99,30 +103,25 @@ export class HttpServer {
       }
     );
 
-    // Initialize User Module
-    const userController = UserModule.initialize();
+    // Espera a que Fastify y fastifyEnv terminen de cargar el .env
 
-    // Register user routes
-    this.registerUserRoutes(userController);
+    // Usa el messageBus recibido por el constructor
+    this.userController = UserModule.initialize(this.messageBus);
+
+    // Registra las rutas de usuario
+    this.registerUserRoutes(this.userController);
   }
 
   private registerUserRoutes(userController: UserController): void {
-    // POST /api/users - Crear usuario
     this.instance.post('/api/users', (req, reply) =>
       userController.registerUser(req, reply)
     );
-
-    // PUT /api/users/:userId - Actualizar usuario
     this.instance.put('/api/users/:userId', (req, reply) =>
       userController.updateUser(req, reply)
     );
-
-    // GET /api/users/:userId - Buscar usuario por ID
     this.instance.get('/api/users/:userId', (req, reply) =>
       userController.findUser(req, reply)
     );
-
-    // GET /api/users - Obtener todos los usuarios
     this.instance.get('/api/users', (req, reply) =>
       userController.getAllUsers(req, reply)
     );
