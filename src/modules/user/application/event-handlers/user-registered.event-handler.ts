@@ -2,13 +2,14 @@ import { EventHandler } from '../../../../shared/domain/event-handler';
 import { User, UserRegisteredEvent } from '../../domain/entities/user.entity';
 import { UserReadRepository } from '../../domain/interfaces/user-read-repository.interface';
 import type { Server as WebSocketServer, WebSocket } from 'ws';
+import { UserEventBroadcaster } from '../broadcasting/interface/user-event-broadcaster.interface';
 
 export class UserRegisteredEventHandler
   implements EventHandler<UserRegisteredEvent>
 {
   constructor(
     private userRepository: UserReadRepository,
-    private getWebSocketServer: () => any[]
+    private broadcaster: UserEventBroadcaster
   ) {}
 
   async handle(event: UserRegisteredEvent): Promise<void> {
@@ -22,28 +23,6 @@ export class UserRegisteredEventHandler
     );
     await this.userRepository.save(user);
 
-    // Emitir por WebSocket a todos los clientes conectados
-    console.log('Intentando obtener WebSocketServer...');
-    const sockets = this.getWebSocketServer();
-    console.log('Sockets obtenidos:', sockets.length);
-    if (sockets && sockets.length > 0) {
-      sockets.forEach((socket: any) => {
-        console.log('Enviando mensaje a socket:', socket.readyState);
-        if (socket.readyState === socket.OPEN) {
-          socket.send('Usuario registrado!');
-          socket.send(
-            JSON.stringify({
-              type: 'user-registered',
-              data: {
-                userId: event.userId,
-                userName: event.userName,
-                firstName: event.firstName,
-                lastName: event.lastName,
-              },
-            })
-          );
-        }
-      });
-    }
+    this.broadcaster.broadcastUserRegistered(event);
   }
 }

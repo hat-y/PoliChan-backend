@@ -13,6 +13,9 @@ import { UpdatedUserCommandHandler } from '../../../modules/user/application/han
 import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
 import { HttpServer } from '../http/http.server';
 
+// Importa la interfaz y la implementación de broadcasting
+import { WebSocketUserEventBroadcaster } from '../../../modules/user/application/broadcasting/websocket-user-event-broadcaster';
+
 export class Container {
   public messageBus: MessageBus;
   public writeDatabase: WriteDatabase;
@@ -37,6 +40,11 @@ export class Container {
       this.writeDatabase
     );
     const userReadRepository = new MongoUserReadRepository(this.readDatabase);
+
+    // Instancia única del broadcaster WebSocket
+    const broadcaster = new WebSocketUserEventBroadcaster(() =>
+      this.httpServer.getWebSocketServer()
+    );
 
     this.messageBus.registerCommandHandler(
       'RegisterUserCommand',
@@ -63,10 +71,9 @@ export class Container {
       new LoginUserQueryHandler(userReadRepository)
     );
 
+    // Usa el broadcaster en el event handler
     this.messageBus.registerEventHandler('UserRegisteredEvent', [
-      new UserRegisteredEventHandler(userReadRepository, () =>
-        this.httpServer.getWebSocketServer()
-      ),
+      new UserRegisteredEventHandler(userReadRepository, broadcaster),
     ]);
 
     this.messageBus.registerEventHandler('UserUpdatedEvent', [
