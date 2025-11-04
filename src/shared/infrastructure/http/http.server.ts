@@ -4,8 +4,6 @@ import Fastify, {
   FastifyRequest,
 } from 'fastify';
 
-import bearerAuthPlugin from '@fastify/bearer-auth';
-
 // Internals Modules
 import { UserModule } from '../../../modules/user/user.module';
 import loggerPlugin from '../plugins/logger.plugin';
