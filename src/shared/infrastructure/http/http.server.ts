@@ -101,11 +101,15 @@ export class HttpServer {
     this.instance.post('/api/user/login', (req, reply) =>
       userController.loginUser(req, reply)
     );
-    this.instance.put('/api/user/:userId', (req, reply) =>
-      userController.updateUser(req, reply)
+    this.instance.put(
+      '/api/user/:userId',
+      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
+      (req, reply) => userController.updateUser(req, reply)
     );
-    this.instance.get('/api/user/:userId', (req, reply) =>
-      userController.findUser(req, reply)
+    this.instance.get(
+      '/api/user/:userId',
+      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
+      (req, reply) => userController.findUser(req, reply)
     );
     this.instance.get(
       '/api/user',
