@@ -67,8 +67,10 @@ export class UserController {
         return;
       }
 
+      const token = await reply.jwtSign(user);
+
       reply.status(200).send({
-        message: 'Usuario autenticado exitosamente',
+        token,
         user,
       });
     } catch (error) {

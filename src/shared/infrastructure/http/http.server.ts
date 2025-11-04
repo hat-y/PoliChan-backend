@@ -3,8 +3,8 @@ import Fastify, {
   FastifyReply,
   FastifyRequest,
 } from 'fastify';
-import fastifyEnv from '@fastify/env';
-import { envSchema } from '../common/env/env.schema';
+
+import bearerAuthPlugin from '@fastify/bearer-auth';
 
 // Internals Modules
 import { UserModule } from '../../../modules/user/user.module';
@@ -12,6 +12,7 @@ import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 import { MessageBus } from '../../domain/message-bus';
 import { getLoggerOptions } from '../common/logger/logger.options';
+import jwtAuthPlugin from './plugins/jwt-auth.plugin';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -27,6 +28,8 @@ export class HttpServer {
       level: process.env.LOG_LEVEL || 'info',
       prettyPrint: process.env.NODE_ENV === 'development',
     });
+
+    this.instance.register(jwtAuthPlugin);
   }
 
   public getInstance(): FastifyInstance {
@@ -104,8 +107,10 @@ export class HttpServer {
     this.instance.get('/api/user/:userId', (req, reply) =>
       userController.findUser(req, reply)
     );
-    this.instance.get('/api/user', (req, reply) =>
-      userController.getAllUsers(req, reply)
+    this.instance.get(
+      '/api/user',
+      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
+      (req, reply) => userController.getAllUsers(req, reply)
     );
   }
 
