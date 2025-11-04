@@ -11,16 +11,19 @@ import { ReadDatabase } from '../mongo/read-database';
 import { WriteDatabase } from '../postgres/write-database';
 import { UpdatedUserCommandHandler } from '../../../modules/user/application/handlers/update-user-command.handler';
 import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
+import { HttpServer } from '../http/http.server';
 
 export class Container {
   public messageBus: MessageBus;
   public writeDatabase: WriteDatabase;
   public readDatabase: ReadDatabase;
+  public httpServer: HttpServer;
 
   constructor() {
     this.messageBus = new InMemoryMessageBus();
     this.writeDatabase = new WriteDatabase();
     this.readDatabase = new ReadDatabase();
+    this.httpServer = new HttpServer(this.messageBus);
   }
 
   public async initiliaze(): Promise<void> {
@@ -61,7 +64,9 @@ export class Container {
     );
 
     this.messageBus.registerEventHandler('UserRegisteredEvent', [
-      new UserRegisteredEventHandler(userReadRepository),
+      new UserRegisteredEventHandler(userReadRepository, () =>
+        this.httpServer.getWebSocketServer()
+      ),
     ]);
 
     this.messageBus.registerEventHandler('UserUpdatedEvent', [

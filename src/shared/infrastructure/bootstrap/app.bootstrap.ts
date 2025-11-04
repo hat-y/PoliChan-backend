@@ -4,8 +4,8 @@ import { MessageBus } from '../../domain/message-bus';
 export class AppBootstrap {
   private httpServer: HttpServer;
 
-  constructor(messageBus: MessageBus) {
-    this.httpServer = new HttpServer(messageBus);
+  constructor(httpServer: HttpServer) {
+    this.httpServer = httpServer;
   }
 
   public async initialize(): Promise<void> {

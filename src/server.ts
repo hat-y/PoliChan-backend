@@ -1,13 +1,12 @@
-// server.ts
 import Fastify from 'fastify';
 import fastifyEnv from '@fastify/env';
 import { envSchema } from './shared/infrastructure/common/env/env.schema';
 import { AppBootstrap } from './shared/infrastructure/bootstrap/app.bootstrap';
 import { Container } from './shared/infrastructure/bootstrap/container';
+import { HttpServer } from './shared/infrastructure/http/http.server';
 
 const bootstrap = async (): Promise<void> => {
   try {
-    // 1. Inicializa Fastify y fastifyEnv primero
     const fastify = Fastify();
     fastify.register(fastifyEnv, {
       schema: envSchema,
@@ -17,9 +16,10 @@ const bootstrap = async (): Promise<void> => {
     await fastify.ready();
 
     const container = new Container();
+
     await container.initiliaze();
 
-    const app = new AppBootstrap(container.messageBus);
+    const app = new AppBootstrap(container.httpServer);
 
     await app.initialize();
     await app.start();

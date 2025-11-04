@@ -3,6 +3,7 @@ import Fastify, {
   FastifyReply,
   FastifyRequest,
 } from 'fastify';
+import fastifyWebsocket from '@fastify/websocket';
 
 // Internals Modules
 import { UserModule } from '../../../modules/user/user.module';
@@ -16,6 +17,7 @@ export class HttpServer {
   private instance: FastifyInstance;
   private userController?: UserController;
   private messageBus: MessageBus;
+  private sockets: any[] = []; // Array para los sockets activos
 
   constructor(messageBus: MessageBus) {
     this.messageBus = messageBus;
@@ -28,10 +30,33 @@ export class HttpServer {
     });
 
     this.instance.register(jwtAuthPlugin);
+
+    // Registra el plugin de WebSocket
+    this.instance.register(fastifyWebsocket);
+
+    // Registra la ruta WebSocket y guarda los sockets conectados
+    this.instance.register((fastify) => {
+      fastify.get('/ws', { websocket: true }, (socket, req) => {
+        this.sockets.push(socket);
+        console.log('Nuevo socket conectado, total:', this.sockets.length); // <-- Agrega este log
+        socket.send('Conectado al WebSocket de PoliChan');
+        socket.on('close', () => {
+          this.sockets = this.sockets.filter((s) => s !== socket);
+        });
+        socket.on('message', (message) => {
+          socket.send(`Echo: ${message.toString()}`);
+        });
+      });
+    });
   }
 
   public getInstance(): FastifyInstance {
     return this.instance;
+  }
+
+  // Devuelve el array de sockets conectados
+  public getWebSocketServer() {
+    return this.sockets;
   }
 
   public async registerRoutes(): Promise<void> {
@@ -48,7 +73,6 @@ export class HttpServer {
         correlationId: string;
       }> => {
         request.log.info('Health check requested');
-
         return {
           message: 'Backend API',
           status: 'running',
@@ -71,11 +95,9 @@ export class HttpServer {
         timestamp: string;
       }> => {
         const log = request.log;
-
         log.info('Testing logger functionality');
         log.debug('Debug message with additional context');
         log.warn('Warning message example');
-
         return {
           message: 'Logger test completed successfully',
           correlationId: request.correlationId,
@@ -85,7 +107,7 @@ export class HttpServer {
       }
     );
 
-    // Usa el messageBus recibido por el constructor
+    // Inicializa el UserController con el messageBus
     this.userController = UserModule.initialize(this.messageBus);
 
     // Registra las rutas de usuario
@@ -118,7 +140,6 @@ export class HttpServer {
 
   public async initialize(): Promise<void> {
     await this.instance.ready();
-
     this.instance.log.info(
       {
         nodeEnv: process.env.NODE_ENV,
@@ -131,7 +152,7 @@ export class HttpServer {
   public async start(port: number, host: string): Promise<void> {
     try {
       await this.instance.listen({ port, host });
-      this.instance.log.info(`Server listening on http://localhost:${port}`);
+      this.instance.log.info(`Server listening on http://${host}:${port}`);
     } catch (err) {
       this.instance.log.error('Failed to start server');
       throw err;
