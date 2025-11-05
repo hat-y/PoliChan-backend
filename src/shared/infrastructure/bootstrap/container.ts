@@ -50,6 +50,7 @@ import { GetAllUsersQuery } from '../../../modules/user/application/queries/get-
 import { FindUserQuery } from '../../../modules/user/application/queries/find-user.query';
 import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
 import { LoginUserQuery } from '../../../modules/user/application/queries/login-user.query';
+import { WebSocketPostEventBroadcaster } from '../../../modules/post/application/broadcasting/websocket-post-event-broadcaster';
 
 export class Container {
   public messageBus: MessageBus;
@@ -79,6 +80,10 @@ export class Container {
 
     // Instancia única del broadcaster WebSocket
     const broadcaster = new WebSocketUserEventBroadcaster(() =>
+      this.httpServer.getWebSocketServer()
+    );
+
+    const postBroadcaster = new WebSocketPostEventBroadcaster(() =>
       this.httpServer.getWebSocketServer()
     );
 
@@ -183,7 +188,11 @@ export class Container {
 
     // ===== POST EVENT HANDLERS =====
     this.messageBus.registerEventHandler(PostCreatedEvent.name, [
-      new PostCreatedEventHandler(postReadRepository, userReadRepository),
+      new PostCreatedEventHandler(
+        postReadRepository,
+        userReadRepository,
+        postBroadcaster
+      ),
     ]);
 
     this.messageBus.registerEventHandler(PostDeletedEvent.name, [
@@ -191,7 +200,7 @@ export class Container {
     ]);
 
     this.messageBus.registerEventHandler(LikeCreatedEvent.name, [
-      new LikeCreatedEventHandler(postReadRepository),
+      new LikeCreatedEventHandler(postReadRepository, postBroadcaster),
     ]);
 
     this.messageBus.registerEventHandler(LikeRemovedEvent.name, [
