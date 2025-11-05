@@ -21,8 +21,6 @@ export class CreatePostCommandHandler implements CommandHandler<CreatePostComman
     const newPost = Post.create(
       postId,
       command.userId,
-      command.fullName,
-      command.username,
       command.content
     );
 
