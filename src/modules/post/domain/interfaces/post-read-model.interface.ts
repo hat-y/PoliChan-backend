@@ -6,6 +6,12 @@ export interface PostReadModel {
   content: string;
   likesCount: number;
   timestamps: Timestamps
+  user?: {
+    id: string,
+    firstName: string,
+    lastName: string,
+    username: string
+  }
 }
 
 

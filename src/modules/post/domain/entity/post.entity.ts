@@ -14,8 +14,6 @@ export class Post {
   public static create(
     id: string,
     userId: string,
-    fullName: string,
-    username: string,
     content: string,
   ): Post {
     return new Post(id, userId, content, 0, Timestamps.create())
@@ -75,8 +73,6 @@ export class PostCreatedEvent extends DomainEvent {
     eventId: string,
     public readonly postId: string,
     public readonly userId: string,
-    public readonly fullName: string,
-    public readonly username: string,
     public readonly content: string,
     public readonly likesCount: number
   ) {

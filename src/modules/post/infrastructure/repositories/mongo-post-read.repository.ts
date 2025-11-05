@@ -145,7 +145,7 @@ export class MongoPostReadRepository implements PostReadRepository {
     return posts.map(post => this.mapToReadModel(post));
   }
 
-  
+
   async save(post: PostReadModel): Promise<void> {
     const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const entity = postRepo.create({
@@ -155,7 +155,8 @@ export class MongoPostReadRepository implements PostReadRepository {
       likesCount: post.likesCount,
       createdAt: post.timestamps.createdAt.toDate(),
       updatedAt: post.timestamps.updatedAt.toDate(),
-      deletedAt: post.timestamps.deletedAt?.toDate()
+      deletedAt: post.timestamps.deletedAt?.toDate(),
+      user: post.user
     });
     await postRepo.save(entity);
   }
@@ -184,7 +185,8 @@ export class MongoPostReadRepository implements PostReadRepository {
         CreatedAt.from(entity.createdAt),
         UpdatedAt.from(entity.updatedAt),
         entity.deletedAt ? DeletedAt.from(entity.deletedAt) : undefined
-      )
+      ),
+      user: entity.user
     };
   }
 }

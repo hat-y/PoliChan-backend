@@ -18,4 +18,12 @@ export class PostMongoEntity extends TimestampsMongoEntity {
 
   @Column('integer')
   likesCount: number;
+
+  @Column('simple-json', { nullable: true })
+  user?: {
+    id: string,
+    firstName: string,
+    lastName: string,
+    username: string
+  }
 }

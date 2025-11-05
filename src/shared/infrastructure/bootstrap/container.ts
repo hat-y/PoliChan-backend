@@ -183,7 +183,7 @@ export class Container {
 
     // ===== POST EVENT HANDLERS =====
     this.messageBus.registerEventHandler(PostCreatedEvent.name, [
-      new PostCreatedEventHandler(postReadRepository),
+      new PostCreatedEventHandler(postReadRepository, userReadRepository),
     ]);
 
     this.messageBus.registerEventHandler(PostDeletedEvent.name, [
