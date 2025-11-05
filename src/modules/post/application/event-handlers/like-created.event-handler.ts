@@ -1,7 +1,8 @@
 import { EventHandler } from '../../../../shared/domain/event-handler';
 import { LikeCreatedEvent } from '../../domain/entity/post.entity';
 import { PostReadRepository } from '../../domain/interfaces/post-read-repository.interface';
-import { UpdatedAt } from '../../../../shared/domain/datetime';
+import { PostReadModel } from '../../domain/interfaces/post-read-model.interface';
+import { Timestamps, UpdatedAt } from '../../../../shared/domain/datetime';
 
 export class LikeCreatedEventHandler implements EventHandler<LikeCreatedEvent> {
   constructor(
@@ -17,13 +18,12 @@ export class LikeCreatedEventHandler implements EventHandler<LikeCreatedEvent> {
       throw new Error(`Post with id ${event.postId} not found in read model`);
     }
 
-    const updatedPost = {
+    const updatedTimestamps = existingPost.timestamps.update();
+
+    const updatedPost: PostReadModel = {
       ...existingPost,
       likesCount: existingPost.likesCount + 1,
-      timestamps: {
-        ...existingPost.timestamps,
-        updatedAt: UpdatedAt.now()
-      }
+      timestamps: updatedTimestamps
     };
 
     await this.postReadRepository.update(updatedPost);
