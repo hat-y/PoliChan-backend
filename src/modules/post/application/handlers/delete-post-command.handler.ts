@@ -1,9 +1,12 @@
+// External Modules
+import { v4 } from "uuid";
+
+// Internal Modules
 import { CommandHandler } from "../../../../shared/domain/command-handler";
 import { PostDeletedEvent } from "../../domain/entity/post.entity";
 import { PostWriteRepository } from "../../domain/interfaces/post-write-repository.interface";
 import { DeletePostCommand } from "../commands/delete-post.command";
 import { MessageBus } from "../../../../shared/domain/message-bus";
-import { v4 } from "uuid";
 
 export class DeletePostCommandHandler implements CommandHandler<DeletePostCommand> {
   constructor(
@@ -12,8 +15,6 @@ export class DeletePostCommandHandler implements CommandHandler<DeletePostComman
   ) { }
 
   async handle(command: DeletePostCommand): Promise<void> {
-    console.log("Handling DeletePostCommand:", command);
-
     const existingPost = await this.postRepository.findById(command.postId);
 
     if (!existingPost) {
@@ -27,7 +28,6 @@ export class DeletePostCommandHandler implements CommandHandler<DeletePostComman
     const deletedPost = existingPost.delete();
 
     await this.postRepository.save(deletedPost);
-
     const event = new PostDeletedEvent(v4(), deletedPost.id);
 
     this.messageBus.publishEventAsync(event);

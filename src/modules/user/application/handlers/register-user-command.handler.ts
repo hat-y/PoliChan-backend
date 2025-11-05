@@ -6,12 +6,11 @@ import { MessageBus } from '../../../../shared/domain/message-bus';
 import { v4 } from 'uuid';
 
 export class RegisterUserCommandHandler
-  implements CommandHandler<RegisterUserCommand>
-{
+  implements CommandHandler<RegisterUserCommand> {
   constructor(
     private userRepository: UserWriteRepository,
     private messageBus: MessageBus
-  ) {}
+  ) { }
 
   async handle(command: RegisterUserCommand): Promise<void> {
     console.log('Handling RegisterUserCommand:', command);

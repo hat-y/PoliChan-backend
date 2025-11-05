@@ -2,13 +2,16 @@ import Fastify, {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
+  RouteGenericInterface,
 } from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 
 // Internals Modules
 import { UserModule } from '../../../modules/user/user.module';
+import { PostModule } from '../../../modules/post/post.module';
 import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
+import { PostController } from '../../../modules/post/presentation/controllers/post.controller';
 import { MessageBus } from '../../domain/message-bus';
 import { getLoggerOptions } from '../common/logger/logger.options';
 import jwtAuthPlugin from './plugins/jwt-auth.plugin';
@@ -17,6 +20,7 @@ import cors from '@fastify/cors';
 export class HttpServer {
   private instance: FastifyInstance;
   private userController?: UserController;
+  private postController?: PostController;
   private messageBus: MessageBus;
   private sockets: any[] = []; // Array para los sockets activos
 
@@ -116,9 +120,11 @@ export class HttpServer {
 
     // Inicializa el UserController con el messageBus
     this.userController = UserModule.initialize(this.messageBus);
+    this.postController = PostModule.initialize(this.messageBus);
 
-    // Registra las rutas de usuario
+    // Registra las rutas
     this.registerUserRoutes(this.userController);
+    this.registerPostRoutes(this.postController);
   }
 
   private registerUserRoutes(userController: UserController): void {

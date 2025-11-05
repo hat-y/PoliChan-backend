@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { UserMongoEntity } from './entities/user-mongo.entity';
+import { PostMongoEntity } from './entities/post-mongo.entity';
 
 export class ReadDatabase {
   private db: DataSource | undefined;
@@ -12,7 +13,7 @@ export class ReadDatabase {
       this.db = new DataSource({
         type: 'mongodb',
         url: process.env.MONGODB_URI,
-        entities: [UserMongoEntity],
+        entities: [UserMongoEntity, PostMongoEntity],
         synchronize: true, // Solo para desarrollo
         logging: true,
       });

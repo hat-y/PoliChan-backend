@@ -35,8 +35,8 @@ export class MongoPostReadRepository implements PostReadRepository {
     const posts = await postRepo.find({
       where: { deletedAt: null },
       order: { createdAt: -1 },
-      take: limit,
-      skip: offset
+      take: Number(limit),
+      skip: Number(offset)
     });
 
     return posts.map(post => this.mapToReadModel(post));
@@ -45,21 +45,23 @@ export class MongoPostReadRepository implements PostReadRepository {
   async findTimeline(afterPostId?: string, limit: number = 50): Promise<PostReadModel[]> {
     const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
 
-    let query = postRepo.createQueryBuilder('post')
-      .where('post.deletedAt IS NULL')
-      .orderBy('post.createdAt', 'DESC')
-      .take(limit);
+    let query: any = {
+      where: { deletedAt: null },
+      order: { createdAt: -1 },
+      take: Number(limit)
+    };
 
     if (afterPostId) {
       const afterPost = await this.findById(afterPostId);
       if (afterPost) {
-        query = query.andWhere('post.createdAt < :createdAt', {
-          createdAt: afterPost.timestamps.createdAt
-        });
+        query.where = {
+          deletedAt: null,
+          createdAt: { $lt: afterPost.timestamps.createdAt.toDate() }
+        };
       }
     }
 
-    const posts = await query.getMany();
+    const posts = await postRepo.find(query);
     return posts.map(post => this.mapToReadModel(post));
   }
 
@@ -69,22 +71,24 @@ export class MongoPostReadRepository implements PostReadRepository {
 
     const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
 
-    let query = postRepo.createQueryBuilder('post')
-      .where('post.userId = :userId', { userId })
-      .andWhere('post.deletedAt IS NULL')
-      .orderBy('post.createdAt', 'DESC')
-      .take(limit);
+    let query: any = {
+      where: { userId, deletedAt: null },
+      order: { createdAt: -1 },
+      take: Number(limit)
+    };
 
     if (afterPostId) {
       const afterPost = await this.findById(afterPostId);
       if (afterPost) {
-        query = query.andWhere('post.createdAt < :createdAt', {
-          createdAt: afterPost.timestamps.createdAt
-        });
+        query.where = {
+          userId,
+          deletedAt: null,
+          createdAt: { $lt: afterPost.timestamps.createdAt.toDate() }
+        };
       }
     }
 
-    const posts = await query.getMany();
+    const posts = await postRepo.find(query);
     return posts.map(post => this.mapToReadModel(post));
   }
 
@@ -107,7 +111,7 @@ export class MongoPostReadRepository implements PostReadRepository {
         deletedAt: null
       },
       order: { likesCount: -1, createdAt: -1 },
-      take: limit
+      take: Number(limit)
     });
 
     return posts.map(post => this.mapToReadModel(post));
@@ -124,7 +128,7 @@ export class MongoPostReadRepository implements PostReadRepository {
         deletedAt: null
       },
       order: { likesCount: -1, createdAt: -1 },
-      take: limit
+      take: Number(limit)
     });
 
     return posts.map(post => this.mapToReadModel(post));
@@ -135,13 +139,41 @@ export class MongoPostReadRepository implements PostReadRepository {
     const posts = await postRepo.find({
       where: { deletedAt: null },
       order: { likesCount: -1, createdAt: -1 },
-      take: limit
+      take: Number(limit)
     });
 
     return posts.map(post => this.mapToReadModel(post));
   }
 
   
+  async save(post: PostReadModel): Promise<void> {
+    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const entity = postRepo.create({
+      id: post.id,
+      userId: post.userId,
+      content: post.content,
+      likesCount: post.likesCount,
+      createdAt: post.timestamps.createdAt.toDate(),
+      updatedAt: post.timestamps.updatedAt.toDate(),
+      deletedAt: post.timestamps.deletedAt?.toDate()
+    });
+    await postRepo.save(entity);
+  }
+
+  async update(post: PostReadModel): Promise<void> {
+    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    await postRepo.updateOne(
+      { id: post.id },
+      {
+        $set: {
+          likesCount: post.likesCount,
+          updatedAt: post.timestamps.updatedAt.toDate(),
+          deletedAt: post.timestamps.deletedAt?.toDate()
+        }
+      }
+    );
+  }
+
   private mapToReadModel(entity: PostMongoEntity): PostReadModel {
     return {
       id: entity.id,

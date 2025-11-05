@@ -1,12 +1,14 @@
+// External modules 
+import { v4 } from 'uuid';
+
+// Internal modules
 import { CommandHandler } from '../../../../shared/domain/command-handler';
 import { Post, PostCreatedEvent } from '../../domain/entity/post.entity';
 import { PostWriteRepository } from '../../domain/interfaces/post-write-repository.interface';
 import { CreatePostCommand } from '../commands/create-post.command';
 import { MessageBus } from '../../../../shared/domain/message-bus';
-import { v4 } from 'uuid';
 
-export class CreatePostCommandHandler
-  implements CommandHandler<CreatePostCommand> {
+export class CreatePostCommandHandler implements CommandHandler<CreatePostCommand> {
 
   constructor(
     private postRepository: PostWriteRepository,
