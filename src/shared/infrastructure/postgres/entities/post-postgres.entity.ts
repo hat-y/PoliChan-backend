@@ -12,6 +12,9 @@ export class PostPostgresEntity extends TimestampsPostgresEntity {
   @Column({ type: 'text' })
   content: string;
 
+  @Column('text', { array: true, default: () => 'ARRAY[]::text[]' })
+  likes: string[];
+
   @Column({ type: 'int', default: 0 })
   likesCount: number;
 }

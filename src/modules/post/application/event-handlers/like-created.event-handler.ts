@@ -19,11 +19,16 @@ export class LikeCreatedEventHandler implements EventHandler<LikeCreatedEvent> {
       throw new Error(`Post with id ${event.postId} not found in read model`);
     }
 
-    const updatedTimestamps = existingPost.timestamps.update();
+    const updatedLikes = existingPost.likes.includes(event.userId)
+      ? existingPost.likes
+      : [...existingPost.likes, event.userId];
 
+    const updatedTimestamps = existingPost.timestamps.update();
+    console.log('oaaaaaa');
     const updatedPost: PostReadModel = {
       ...existingPost,
-      likesCount: existingPost.likesCount + 1,
+      likes: updatedLikes,
+      likesCount: updatedLikes.length,
       timestamps: updatedTimestamps,
     };
 

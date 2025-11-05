@@ -1,16 +1,20 @@
-import { PostMongoEntity } from "../../../../shared/infrastructure/mongo/entities/post-mongo.entity";
-import { ReadDatabase } from "../../../../shared/infrastructure/mongo/read-database";
-import { PostReadModel } from "../../domain/interfaces/post-read-model.interface";
-import { PostReadRepository } from "../../domain/interfaces/post-read-repository.interface";
-import { Timestamps, CreatedAt, UpdatedAt, DeletedAt } from "../../../../shared/domain/datetime";
+import { PostMongoEntity } from '../../../../shared/infrastructure/mongo/entities/post-mongo.entity';
+import { ReadDatabase } from '../../../../shared/infrastructure/mongo/read-database';
+import { PostReadModel } from '../../domain/interfaces/post-read-model.interface';
+import { PostReadRepository } from '../../domain/interfaces/post-read-repository.interface';
+import {
+  Timestamps,
+  CreatedAt,
+  UpdatedAt,
+  DeletedAt,
+} from '../../../../shared/domain/datetime';
 
 export class MongoPostReadRepository implements PostReadRepository {
-  constructor(
-    private readDataBase: ReadDatabase
-  ) { }
+  constructor(private readDataBase: ReadDatabase) {}
 
   async findById(id: string): Promise<PostReadModel | null> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const post = await postRepo.findOne({ where: { id } });
 
     if (!post) {
@@ -21,34 +25,43 @@ export class MongoPostReadRepository implements PostReadRepository {
   }
 
   async findByUserId(userId: string): Promise<PostReadModel[]> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const posts = await postRepo.find({
       where: { userId },
-      order: { createdAt: -1 }
+      order: { createdAt: -1 },
     });
 
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
-  async findAll(limit: number = 50, offset: number = 0): Promise<PostReadModel[]> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+  async findAll(
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<PostReadModel[]> {
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const posts = await postRepo.find({
       where: { deletedAt: null },
       order: { createdAt: -1 },
       take: Number(limit),
-      skip: Number(offset)
+      skip: Number(offset),
     });
 
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
-  async findTimeline(afterPostId?: string, limit: number = 50): Promise<PostReadModel[]> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+  async findTimeline(
+    afterPostId?: string,
+    limit: number = 50
+  ): Promise<PostReadModel[]> {
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
 
     let query: any = {
       where: { deletedAt: null },
       order: { createdAt: -1 },
-      take: Number(limit)
+      take: Number(limit),
     };
 
     if (afterPostId) {
@@ -56,25 +69,27 @@ export class MongoPostReadRepository implements PostReadRepository {
       if (afterPost) {
         query.where = {
           deletedAt: null,
-          createdAt: { $lt: afterPost.timestamps.createdAt.toDate() }
+          createdAt: { $lt: afterPost.timestamps.createdAt.toDate() },
         };
       }
     }
 
     const posts = await postRepo.find(query);
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
   async findUserTimeline(
-    userId: string, afterPostId?: string, limit: number = 50
+    userId: string,
+    afterPostId?: string,
+    limit: number = 50
   ): Promise<PostReadModel[]> {
-
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
 
     let query: any = {
       where: { userId, deletedAt: null },
       order: { createdAt: -1 },
-      take: Number(limit)
+      take: Number(limit),
     };
 
     if (afterPostId) {
@@ -83,17 +98,18 @@ export class MongoPostReadRepository implements PostReadRepository {
         query.where = {
           userId,
           deletedAt: null,
-          createdAt: { $lt: afterPost.timestamps.createdAt.toDate() }
+          createdAt: { $lt: afterPost.timestamps.createdAt.toDate() },
         };
       }
     }
 
     const posts = await postRepo.find(query);
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
   async findWithLikesCount(postId: string): Promise<PostReadModel | null> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const post = await postRepo.findOne({ where: { id: postId } });
 
     if (!post) {
@@ -103,74 +119,84 @@ export class MongoPostReadRepository implements PostReadRepository {
     return this.mapToReadModel(post);
   }
 
-  async findByMinLikes(minLikes: number, limit: number = 50): Promise<PostReadModel[]> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+  async findByMinLikes(
+    minLikes: number,
+    limit: number = 50
+  ): Promise<PostReadModel[]> {
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const posts = await postRepo.find({
       where: {
         likesCount: { $gte: minLikes },
-        deletedAt: null
+        deletedAt: null,
       },
       order: { likesCount: -1, createdAt: -1 },
-      take: Number(limit)
+      take: Number(limit),
     });
 
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
   async findByLikesRange(
-    minLikes: number, maxLikes: number, limit: number = 50
+    minLikes: number,
+    maxLikes: number,
+    limit: number = 50
   ): Promise<PostReadModel[]> {
-
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const posts = await postRepo.find({
       where: {
         likesCount: { $gte: minLikes, $lte: maxLikes },
-        deletedAt: null
+        deletedAt: null,
       },
       order: { likesCount: -1, createdAt: -1 },
-      take: Number(limit)
+      take: Number(limit),
     });
 
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
   async findMostLiked(limit: number = 20): Promise<PostReadModel[]> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const posts = await postRepo.find({
       where: { deletedAt: null },
       order: { likesCount: -1, createdAt: -1 },
-      take: Number(limit)
+      take: Number(limit),
     });
 
-    return posts.map(post => this.mapToReadModel(post));
+    return posts.map((post) => this.mapToReadModel(post));
   }
 
-
   async save(post: PostReadModel): Promise<void> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     const entity = postRepo.create({
       id: post.id,
       userId: post.userId,
       content: post.content,
-      likesCount: post.likesCount,
+      likes: post.likes,
       createdAt: post.timestamps.createdAt.toDate(),
       updatedAt: post.timestamps.updatedAt.toDate(),
       deletedAt: post.timestamps.deletedAt?.toDate(),
-      user: post.user
+      user: post.user,
     });
     await postRepo.save(entity);
   }
 
   async update(post: PostReadModel): Promise<void> {
-    const postRepo = this.readDataBase.connection.getMongoRepository(PostMongoEntity);
+    const postRepo =
+      this.readDataBase.connection.getMongoRepository(PostMongoEntity);
     await postRepo.updateOne(
       { id: post.id },
       {
         $set: {
-          likesCount: post.likesCount,
+          likes: post.likes,
+          likesCount: post.likes.length,
+          content: post.content,
           updatedAt: post.timestamps.updatedAt.toDate(),
-          deletedAt: post.timestamps.deletedAt?.toDate()
-        }
+          deletedAt: post.timestamps.deletedAt?.toDate(),
+        },
       }
     );
   }
@@ -180,13 +206,14 @@ export class MongoPostReadRepository implements PostReadRepository {
       id: entity.id,
       userId: entity.userId,
       content: entity.content,
-      likesCount: entity.likesCount,
+      likes: entity.likes || [],
+      likesCount: (entity.likes || []).length,
       timestamps: new Timestamps(
         CreatedAt.from(entity.createdAt),
         UpdatedAt.from(entity.updatedAt),
         entity.deletedAt ? DeletedAt.from(entity.deletedAt) : undefined
       ),
-      user: entity.user
+      user: entity.user,
     };
   }
 }

@@ -5,20 +5,20 @@ import { PostPostgresEntity } from '../../../../shared/infrastructure/postgres/e
 import { Timestamps } from '../../../../shared/domain/datetime';
 
 export class PostgresPostWriteRepository implements PostWriteRepository {
-  constructor(
-    private writeDataBase: WriteDatabase
-  ) { }
+  constructor(private writeDataBase: WriteDatabase) {}
 
   async save(post: Post): Promise<void> {
-    const repo = this.writeDataBase.connection.getRepository(PostPostgresEntity);
+    const repo =
+      this.writeDataBase.connection.getRepository(PostPostgresEntity);
     const entity = repo.create({
       id: post.id,
       userId: post.userId,
       content: post.content,
+      likes: post.likes, // <-- Guarda el array
       likesCount: post.likesCount,
       createdAt: post.timestamps.createdAt.toDate(),
       updatedAt: post.timestamps.updatedAt.toDate(),
-      deletedAt: post.timestamps.deletedAt?.toDate()
+      deletedAt: post.timestamps.deletedAt?.toDate(),
     });
     await repo.save(entity);
   }
@@ -40,7 +40,7 @@ export class PostgresPostWriteRepository implements PostWriteRepository {
       entity.id,
       entity.userId,
       entity.content,
-      entity.likesCount,
+      entity.likes,
       timestamps
     );
   }
@@ -50,7 +50,7 @@ export class PostgresPostWriteRepository implements PostWriteRepository {
       this.writeDataBase.connection.getRepository(PostPostgresEntity);
     const entities = await repo.findBy({ userId });
 
-    return entities.map(entity => {
+    return entities.map((entity) => {
       const timestamps = Timestamps.from(
         entity.createdAt,
         entity.updatedAt,
@@ -61,7 +61,7 @@ export class PostgresPostWriteRepository implements PostWriteRepository {
         entity.id,
         entity.userId,
         entity.content,
-        entity.likesCount,
+        entity.likes,
         timestamps
       );
     });
@@ -72,7 +72,7 @@ export class PostgresPostWriteRepository implements PostWriteRepository {
       this.writeDataBase.connection.getRepository(PostPostgresEntity);
     await repo.update(post.id, {
       deletedAt: post.timestamps.deletedAt?.toDate(),
-      updatedAt: post.timestamps.updatedAt.toDate()
+      updatedAt: post.timestamps.updatedAt.toDate(),
     });
   }
 }

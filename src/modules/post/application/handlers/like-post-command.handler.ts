@@ -9,7 +9,7 @@ export class LikePostCommandHandler implements CommandHandler<LikePostCommand> {
   constructor(
     private postRepository: PostWriteRepository,
     private messageBus: MessageBus
-  ) { }
+  ) {}
 
   async handle(command: LikePostCommand): Promise<void> {
     const post = await this.postRepository.findById(command.postId);
@@ -18,15 +18,11 @@ export class LikePostCommandHandler implements CommandHandler<LikePostCommand> {
       throw new Error(`Post with id ${command.postId} not found`);
     }
 
-    const likedPost = post.like();
+    const likedPost = post.like(command.userId);
 
     await this.postRepository.save(likedPost);
 
-    const event = new LikeCreatedEvent(
-      v4(),
-      likedPost.id,
-      command.userId
-    );
+    const event = new LikeCreatedEvent(v4(), likedPost.id, command.userId);
 
     this.messageBus.publishEventAsync(event);
   }

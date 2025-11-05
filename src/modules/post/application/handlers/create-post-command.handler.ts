@@ -1,4 +1,4 @@
-// External modules 
+// External modules
 import { v4 } from 'uuid';
 
 // Internal modules
@@ -8,21 +8,18 @@ import { PostWriteRepository } from '../../domain/interfaces/post-write-reposito
 import { CreatePostCommand } from '../commands/create-post.command';
 import { MessageBus } from '../../../../shared/domain/message-bus';
 
-export class CreatePostCommandHandler implements CommandHandler<CreatePostCommand> {
-
+export class CreatePostCommandHandler
+  implements CommandHandler<CreatePostCommand>
+{
   constructor(
     private postRepository: PostWriteRepository,
     private messageBus: MessageBus
-  ) { }
+  ) {}
 
   async handle(command: CreatePostCommand): Promise<void> {
     const postId = v4();
 
-    const newPost = Post.create(
-      postId,
-      command.userId,
-      command.content
-    );
+    const newPost = Post.create(postId, command.userId, command.content);
 
     await this.postRepository.save(newPost);
 
@@ -31,7 +28,7 @@ export class CreatePostCommandHandler implements CommandHandler<CreatePostComman
       newPost.id,
       newPost.userId,
       newPost.content,
-      newPost.likesCount
+      newPost.likes
     );
 
     this.messageBus.publishEventAsync(event);

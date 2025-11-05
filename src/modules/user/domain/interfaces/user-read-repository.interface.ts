@@ -6,5 +6,5 @@ export interface UserReadRepository {
   findById(id: string): Promise<UserReadModel | null>;
   findAll(): Promise<UserReadModel[]>;
   finByUserName(userName: string): Promise<UserReadModel | null>;
-  save(user: User): Promise<void>;
+  save(user: UserReadModel): Promise<void>;
 }

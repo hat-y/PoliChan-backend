@@ -1,6 +1,6 @@
-import { Column, Entity, ObjectIdColumn } from "typeorm";
+import { Column, Entity, ObjectIdColumn } from 'typeorm';
 import { ObjectId } from 'mongodb';
-import { TimestampsMongoEntity } from "../../../../shared/infrastructure/base/timestamps-mongo.entity";
+import { TimestampsMongoEntity } from '../../../../shared/infrastructure/base/timestamps-mongo.entity';
 
 @Entity('posts')
 export class PostMongoEntity extends TimestampsMongoEntity {
@@ -16,14 +16,14 @@ export class PostMongoEntity extends TimestampsMongoEntity {
   @Column('text')
   content: string;
 
-  @Column('integer')
-  likesCount: number;
+  @Column('simple-array')
+  likes: string[]; // <-- Array de IDs de usuarios
 
   @Column('simple-json', { nullable: true })
   user?: {
-    id: string,
-    firstName: string,
-    lastName: string,
-    username: string
-  }
+    id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+  };
 }
