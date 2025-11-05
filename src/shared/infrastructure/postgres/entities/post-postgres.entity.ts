@@ -1,8 +1,4 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-} from 'typeorm';
+import { Entity, PrimaryColumn, Column } from 'typeorm';
 import { TimestampsPostgresEntity } from '../../base/timestamps-postgres.entity';
 
 @Entity('posts')
@@ -10,7 +6,7 @@ export class PostPostgresEntity extends TimestampsPostgresEntity {
   @PrimaryColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'text' })
   userId: string;
 
   @Column({ type: 'text' })

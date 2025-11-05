@@ -151,6 +151,98 @@ export class HttpServer {
     );
   }
 
+  private registerPostRoutes(postController: PostController): void {
+    // ===== COMMANDS  =====
+    this.instance.post(
+      '/api/posts',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => postController.createPost(req, reply)
+    );
+
+    this.instance.delete(
+      '/api/posts/:postId',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => postController.deletePost(req, reply)
+    );
+
+    this.instance.post(
+      '/api/posts/:postId/like',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => postController.likePost(req, reply)
+    );
+
+    this.instance.post(
+      '/api/posts/:postId/unlike',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => postController.unlikePost(req, reply)
+    );
+
+    // ===== QUERIES (Read Operations) =====
+    this.instance.get(
+      '/api/posts/:postId',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => postController.getPost(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => postController.getAllPosts(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/user/:userId',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => postController.getPostsByUser(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/timeline',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => postController.getTimeline(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/user/:userId/timeline',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => postController.getUserTimeline(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/most-liked',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => postController.getMostLikedPosts(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/by-likes',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => postController.getPostsByLikesRange(req, reply)
+    );
+  }
+
   public async initialize(): Promise<void> {
     await this.instance.ready();
     this.instance.log.info(

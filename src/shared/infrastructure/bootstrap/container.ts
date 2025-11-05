@@ -44,6 +44,12 @@ import { PostCreatedEventHandler } from '../../../modules/post/application/event
 import { PostDeletedEventHandler } from '../../../modules/post/application/event-handlers/post-deleted.event-handler';
 import { LikeCreatedEventHandler } from '../../../modules/post/application/event-handlers/like-created.event-handler';
 import { LikeRemovedEventHandler } from '../../../modules/post/application/event-handlers/like-removed.event-handler';
+import { HttpServer } from '../http/http.server';
+import { WebSocketUserEventBroadcaster } from '../../../modules/user/application/broadcasting/websocket-user-event-broadcaster';
+import { GetAllUsersQuery } from '../../../modules/user/application/queries/get-all-users.query';
+import { FindUserQuery } from '../../../modules/user/application/queries/find-user.query';
+import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
+import { LoginUserQuery } from '../../../modules/user/application/queries/login-user.query';
 
 export class Container {
   public messageBus: MessageBus;
@@ -70,6 +76,11 @@ export class Container {
       this.writeDatabase
     );
     const userReadRepository = new MongoUserReadRepository(this.readDatabase);
+
+    // Instancia única del broadcaster WebSocket
+    const broadcaster = new WebSocketUserEventBroadcaster(() =>
+      this.httpServer.getWebSocketServer()
+    );
 
     // Post module repositories
     const postWriteRepository = new PostgresPostWriteRepository(
@@ -111,13 +122,18 @@ export class Container {
 
     // ===== USER QUERY HANDLERS =====
     this.messageBus.registerQueryHandler(
-      'FindUserByIdQuery',
+      FindUserQuery.name,
       new FindUserQueryHandler(userReadRepository)
     );
 
     this.messageBus.registerQueryHandler(
-      'GetAllUsersQuery',
+      GetAllUsersQuery.name,
       new GetAllUsersQueryHandler(userReadRepository)
+    );
+
+    this.messageBus.registerQueryHandler(
+      LoginUserQuery.name,
+      new LoginUserQueryHandler(userReadRepository)
     );
 
     // ===== POST QUERY HANDLERS =====
