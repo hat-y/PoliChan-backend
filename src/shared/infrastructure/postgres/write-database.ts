@@ -5,7 +5,7 @@ export class WriteDatabase {
   private db: DataSource | undefined;
   private initialized: boolean = false;
 
-  constructor() {}
+  constructor() { }
 
   public async initialize(): Promise<void> {
     if (!this.db) {
