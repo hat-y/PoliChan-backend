@@ -8,7 +8,7 @@ import { GetAllUsersQuery } from '../../application/queries/get-all-users.query'
 import { LoginUserQuery } from '../../application/queries/login-user.query';
 
 export class UserController {
-  constructor(private messageBus: MessageBus) {}
+  constructor(private messageBus: MessageBus) { }
 
   async registerUser(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
@@ -54,6 +54,7 @@ export class UserController {
         userName?: string;
         password?: string;
       };
+
       if (!userName || !password) {
         reply.status(400).send({ error: 'userName y password son requeridos' });
         return;
