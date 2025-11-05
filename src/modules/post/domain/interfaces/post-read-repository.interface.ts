@@ -4,6 +4,8 @@ export interface PostReadRepository {
   findById(id: string): Promise<PostReadModel | null>
   findByUserId(userId: string): Promise<PostReadModel[]>
   findAll(limit?: number, offset?: number): Promise<PostReadModel[]>
+  save(post: PostReadModel): Promise<void>
+  update(post: PostReadModel): Promise<void>
 
   // Find for Timeline
   findTimeline(afterPostId?: string, limit?: number): Promise<PostReadModel[]>

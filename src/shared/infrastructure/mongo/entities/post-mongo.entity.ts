@@ -7,15 +7,15 @@ export class PostMongoEntity extends TimestampsMongoEntity {
   @ObjectIdColumn()
   _id: ObjectId;
 
-  @Column()
+  @Column('text')
   id: string;
 
-  @Column({ type: 'text' })
+  @Column('text')
   userId: string;
 
-  @Column({ type: 'text' })
+  @Column('text')
   content: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column('integer')
   likesCount: number;
 }

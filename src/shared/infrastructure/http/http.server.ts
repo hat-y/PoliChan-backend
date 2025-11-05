@@ -3,19 +3,23 @@ import Fastify, {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
+  RouteGenericInterface,
 } from 'fastify';
 import fastifyEnv from '@fastify/env';
 import { envSchema } from '../common/env/env.schema';
 
 // Internals Modules
 import { UserModule } from '../../../modules/user/user.module';
+import { PostModule } from '../../../modules/post/post.module';
 import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
+import { PostController } from '../../../modules/post/presentation/controllers/post.controller';
 import { MessageBus } from '../../domain/message-bus';
 
 export class HttpServer {
   private instance: FastifyInstance;
   private userController?: UserController;
+  private postController?: PostController;
   private messageBus: MessageBus;
 
   constructor(messageBus: MessageBus) {
@@ -27,14 +31,14 @@ export class HttpServer {
         level: process.env.LOG_LEVEL || 'info',
         transport: isDevelopment
           ? {
-              target: 'pino-pretty',
-              options: {
-                colorize: true,
-                translateTime: 'HH:MM:ss Z',
-                ignore: 'pid,hostname,reqId',
-                messageFormat: '{correlationId} [{level}] {msg}',
-              },
-            }
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname,reqId',
+              messageFormat: '{correlationId} [{level}] {msg}',
+            },
+          }
           : undefined,
       },
     });
@@ -105,9 +109,11 @@ export class HttpServer {
 
     // Usa el messageBus recibido por el constructor
     this.userController = UserModule.initialize(this.messageBus);
+    this.postController = PostModule.initialize(this.messageBus);
 
-    // Registra las rutas de usuario
+    // Registra las rutas
     this.registerUserRoutes(this.userController);
+    this.registerPostRoutes(this.postController);
   }
 
   private registerUserRoutes(userController: UserController): void {
@@ -122,6 +128,76 @@ export class HttpServer {
     );
     this.instance.get('/api/users', (req, reply) =>
       userController.getAllUsers(req, reply)
+    );
+  }
+
+  private registerPostRoutes(postController: PostController): void {
+    // ===== COMMANDS  =====
+    this.instance.post('/api/posts', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): any =>
+      postController.createPost(req, reply)
+    );
+
+    this.instance.delete('/api/posts/:postId', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): any =>
+      postController.deletePost(req, reply)
+    );
+
+    this.instance.post('/api/posts/:postId/like', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): any =>
+      postController.likePost(req, reply)
+    );
+
+    this.instance.post('/api/posts/:postId/unlike', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): any =>
+      postController.unlikePost(req, reply)
+    );
+
+    // ===== QUERIES (Read Operations) =====
+    this.instance.get('/api/posts/:postId', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): Promise<void> =>
+      postController.getPost(req, reply)
+    );
+
+    this.instance.get('/api/posts', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): any =>
+      postController.getAllPosts(req, reply)
+    );
+
+    this.instance.get('/api/posts/user/:userId', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): Promise<void> =>
+      postController.getPostsByUser(req, reply)
+    );
+
+    this.instance.get('/api/posts/timeline', (
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
+    ): Promise<void> =>
+      postController.getTimeline(req, reply)
+    );
+
+    this.instance.get('/api/posts/user/:userId/timeline', (
+      req: FastifyRequest, reply: FastifyReply
+    ): Promise<void> =>
+      postController.getUserTimeline(req, reply)
+    );
+
+    this.instance.get('/api/posts/most-liked', (
+      req: FastifyRequest, reply: FastifyReply
+    ): Promise<void> =>
+      postController.getMostLikedPosts(req, reply)
+    );
+
+    this.instance.get('/api/posts/by-likes', (
+      req: FastifyRequest, reply: FastifyReply
+    ): Promise<void> =>
+      postController.getPostsByLikesRange(req, reply)
     );
   }
 
