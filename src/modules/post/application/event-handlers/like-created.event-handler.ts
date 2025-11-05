@@ -3,11 +3,12 @@ import { LikeCreatedEvent } from '../../domain/entity/post.entity';
 import { PostReadRepository } from '../../domain/interfaces/post-read-repository.interface';
 import { PostReadModel } from '../../domain/interfaces/post-read-model.interface';
 import { Timestamps, UpdatedAt } from '../../../../shared/domain/datetime';
-
+import { PostEventBroadcaster } from '../broadcasting/interfaces/post-event-broadcaster.interface';
 export class LikeCreatedEventHandler implements EventHandler<LikeCreatedEvent> {
   constructor(
-    private postReadRepository: PostReadRepository
-  ) { }
+    private postReadRepository: PostReadRepository,
+    private broadcaster: PostEventBroadcaster // <-- nuevo parámetro
+  ) {}
 
   async handle(event: LikeCreatedEvent): Promise<void> {
     console.log('LikeCreatedEventHandler received event:', event);
@@ -23,9 +24,12 @@ export class LikeCreatedEventHandler implements EventHandler<LikeCreatedEvent> {
     const updatedPost: PostReadModel = {
       ...existingPost,
       likesCount: existingPost.likesCount + 1,
-      timestamps: updatedTimestamps
+      timestamps: updatedTimestamps,
     };
 
     await this.postReadRepository.update(updatedPost);
+
+    // Emitir evento por WebSocket
+    this.broadcaster.broadcastLikeCreated(event);
   }
 }
