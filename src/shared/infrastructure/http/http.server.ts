@@ -183,19 +183,19 @@ export class HttpServer {
     );
 
     this.instance.get('/api/posts/user/:userId/timeline', (
-      req: FastifyRequest, reply: FastifyReply
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
     ): Promise<void> =>
       postController.getUserTimeline(req, reply)
     );
 
     this.instance.get('/api/posts/most-liked', (
-      req: FastifyRequest, reply: FastifyReply
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
     ): Promise<void> =>
       postController.getMostLikedPosts(req, reply)
     );
 
     this.instance.get('/api/posts/by-likes', (
-      req: FastifyRequest, reply: FastifyReply
+      req: FastifyRequest<RouteGenericInterface>, reply: FastifyReply<RouteGenericInterface>
     ): Promise<void> =>
       postController.getPostsByLikesRange(req, reply)
     );
