@@ -12,7 +12,7 @@ export class MongoUserReadRepository implements UserReadRepository {
     const user = await userRepo.findOneBy({ id });
     return user
       ? {
-          id: user._id.toString(),
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           userName: user.userName,
@@ -29,7 +29,7 @@ export class MongoUserReadRepository implements UserReadRepository {
     const user = await userRepo.findOneBy({ userName });
     return user
       ? {
-          id: user._id.toString(),
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           userName: user.userName,
@@ -46,7 +46,7 @@ export class MongoUserReadRepository implements UserReadRepository {
     const users = await userRepo.find();
     console.log('MongoUserReadRepository.findAll retrieved users:', users);
     return users.map((user) => ({
-      id: user._id.toString(),
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       userName: user.userName,

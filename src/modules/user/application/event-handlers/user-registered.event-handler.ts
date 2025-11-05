@@ -1,7 +1,6 @@
 import { EventHandler } from '../../../../shared/domain/event-handler';
-import { User, UserRegisteredEvent } from '../../domain/entities/user.entity';
+import { UserRegisteredEvent } from '../../domain/entities/user.entity';
 import { UserReadRepository } from '../../domain/interfaces/user-read-repository.interface';
-import type { Server as WebSocketServer, WebSocket } from 'ws';
 import { UserEventBroadcaster } from '../broadcasting/interface/user-event-broadcaster.interface';
 
 export class UserRegisteredEventHandler
@@ -14,14 +13,18 @@ export class UserRegisteredEventHandler
 
   async handle(event: UserRegisteredEvent): Promise<void> {
     console.log('UserRegisteredEventHandler received event:', event);
-    const user = User.create(
-      event.userId,
-      event.firstName,
-      event.lastName,
-      event.userName,
-      event.password
-    );
-    await this.userRepository.save(user);
+
+    const userReadModel = {
+      id: event.userId,
+      firstName: event.firstName,
+      lastName: event.lastName,
+      userName: event.userName,
+      password: event.password,
+      createdAt: event.occurredAt,
+      updatedAt: event.occurredAt
+    };
+
+    await this.userRepository.save(userReadModel);
 
     this.broadcaster.broadcastUserRegistered(event);
   }

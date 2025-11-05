@@ -13,6 +13,9 @@ export class UserMongoEntity {
   _id: ObjectId;
 
   @Column('text')
+  id: string;
+
+  @Column('text')
   firstName: string;
 
   @Column('text')

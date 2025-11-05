@@ -1,5 +1,5 @@
 import { EventHandler } from '../../../../shared/domain/event-handler';
-import { User, UserUpdatedEvent } from '../../domain/entities/user.entity';
+import { UserUpdatedEvent } from '../../domain/entities/user.entity';
 import { UserReadRepository } from '../../domain/interfaces/user-read-repository.interface';
 
 export class UserUpdatedEventHandler implements EventHandler<UserUpdatedEvent> {
@@ -12,14 +12,17 @@ export class UserUpdatedEventHandler implements EventHandler<UserUpdatedEvent> {
       throw new Error('User not found in read model');
     }
 
-    // Usa los datos existentes para los campos que faltan
-    const user = User.create(
-      event.userId,
-      existingUser.firstName,
-      existingUser.lastName,
-      event.userName,
-      existingUser.password
-    );
-    await this.userRepository.save(user);
+    // Crea el read model actualizado
+    const updatedUserReadModel = {
+      id: event.userId,
+      firstName: existingUser.firstName,
+      lastName: existingUser.lastName,
+      userName: event.userName,
+      password: existingUser.password,
+      createdAt: existingUser.createdAt,
+      updatedAt: event.occurredAt
+    };
+
+    await this.userRepository.save(updatedUserReadModel);
   }
 }

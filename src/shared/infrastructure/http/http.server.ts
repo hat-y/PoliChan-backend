@@ -15,7 +15,6 @@ import { PostController } from '../../../modules/post/presentation/controllers/p
 import { MessageBus } from '../../domain/message-bus';
 import { getLoggerOptions } from '../common/logger/logger.options';
 import jwtAuthPlugin from './plugins/jwt-auth.plugin';
-import cors from '@fastify/cors';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -32,12 +31,6 @@ export class HttpServer {
     this.instance.register(loggerPlugin, {
       level: process.env.LOG_LEVEL || 'info',
       prettyPrint: process.env.NODE_ENV === 'development',
-    });
-
-    this.instance.register(cors, {
-      origin: process.env.FRONTEND_URL,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      credentials: true,
     });
 
     this.instance.register(jwtAuthPlugin);
