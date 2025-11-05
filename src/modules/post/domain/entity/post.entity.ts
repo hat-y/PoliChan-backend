@@ -19,7 +19,7 @@ export class Post {
     return new Post(id, userId, content, 0, Timestamps.create())
   }
 
-  public updatePost(newContent: string) {
+  public updatePost(newContent: string): Post {
     return new Post(this.id, this.userId, newContent, this.likesCount, this.timestamps.update())
   }
 
@@ -100,7 +100,7 @@ export class PostDeletedEvent extends DomainEvent {
   }
 }
 
-// ==== TODO created a other module for a Like events ====
+// ==== created a other module for a Like events ====
 export class LikeCreatedEvent extends DomainEvent {
   constructor(
     eventId: string,

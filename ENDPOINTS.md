@@ -115,7 +115,7 @@ API completa para el módulo de posts con arquitectura CQRS (Command Query Respo
 
 **URL Parameters:**
 - `postId`: UUID del post a obtener
-
+- [~] 
 **Query Parameters:** None
 
 **Response:**
