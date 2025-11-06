@@ -64,8 +64,8 @@ export class Comments {
   public delete(): { comment: Comments; event: CommentsDeletedEvent } {
     const deletedComment = new Comments(
       this.id,
-      this.userId,
       this.postId,
+      this.userId,
       this._likes,
       this.content,
       this.timestamps.delete()
@@ -98,7 +98,11 @@ export class Comments {
   }
 
   public unlike(userId: string): { comment: Comments; event?: CommentUnlikedEvent } {
+    console.log(`Comments.unlike called for comment ${this.id} by user ${userId}`);
+    console.log(`Current likes:`, this._likes);
+
     if (!this._likes.includes(userId)) {
+      console.log(`User ${userId} has not liked comment ${this.id}, returning without changes`);
       return { comment: this }; // No hay cambios, no hay evento
     }
 
@@ -113,6 +117,9 @@ export class Comments {
 
     const eventId = `event_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     const event = new CommentUnlikedEvent(eventId, this.id, this.postId, userId);
+
+    console.log(`Created CommentUnlikedEvent:`, { eventId, commentId: this.id, userId });
+    console.log(`Updated likes count:`, unlikedComment.likesCount);
 
     return { comment: unlikedComment, event };
   }

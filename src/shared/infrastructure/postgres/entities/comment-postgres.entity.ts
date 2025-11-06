@@ -20,7 +20,7 @@ export class CommentPostgresEntity {
   likes: string[]
 
   @Column({ type: 'int', default: 0 })
-  likesCount: string;
+  likesCount: number;
 
   @Column({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

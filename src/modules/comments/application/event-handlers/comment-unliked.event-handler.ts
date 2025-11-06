@@ -28,7 +28,7 @@ export class CommentUnlikedEventHandler implements EventHandler<CommentUnlikedEv
       timestamps: existingComment.timestamps.update()
     };
 
-    await this.commentReadRepository.save(updatedComment);
+    await this.commentReadRepository.update(updatedComment);
 
     this.commentEventBroadcaster.broadcastCommentUnliked(event);
 
