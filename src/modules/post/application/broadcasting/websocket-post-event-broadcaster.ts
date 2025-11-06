@@ -19,7 +19,7 @@ export class WebSocketPostEventBroadcaster implements PostEventBroadcaster {
                 postId: event.postId,
                 userId: event.userId,
                 content: event.content,
-                likesCount: event.likesCount,
+                likesCount: event.likes.length,
                 occurredAt: event.occurredAt,
               },
             })
