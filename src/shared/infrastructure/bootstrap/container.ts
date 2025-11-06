@@ -52,6 +52,30 @@ import { LoginUserQueryHandler } from '../../../modules/user/application/handler
 import { LoginUserQuery } from '../../../modules/user/application/queries/login-user.query';
 import { WebSocketPostEventBroadcaster } from '../../../modules/post/application/broadcasting/websocket-post-event-broadcaster';
 
+// Comments module imports
+import { CreateCommentCommand } from '../../../modules/comments/application/commands/create-comment.command';
+import { DeleteCommentCommand } from '../../../modules/comments/application/commands/delete-comment.command';
+import { LikeCommentCommand } from '../../../modules/comments/application/commands/like-comment.command';
+import { UnlikeCommentCommand } from '../../../modules/comments/application/commands/unlike-comment.command';
+import { CreateCommentCommandHandler } from '../../../modules/comments/application/handlers/create-comment-command.handler';
+import { DeleteCommentCommandHandler } from '../../../modules/comments/application/handlers/delete-comment-command.handler';
+import { LikeCommentCommandHandler } from '../../../modules/comments/application/handlers/like-comment-command.handler';
+import { UnlikeCommentCommandHandler } from '../../../modules/comments/application/handlers/unlike-comment-command.handler';
+import { FindCommentQuery } from '../../../modules/comments/application/queries/find-comment.query';
+import { FindCommentsByPostQuery } from '../../../modules/comments/application/queries/find-comments-by-post.query';
+import { FindCommentQueryHandler } from '../../../modules/comments/application/handlers/find-comment-query.handler';
+import { FindCommentsByPostQueryHandler } from '../../../modules/comments/application/handlers/find-comments-by-post-query.handler';
+import { PostgresCommentsWriteRepository } from '../../../modules/comments/infrastructure/repositories/postgres-comments-write.repository';
+import { MongoCommentsReadRepository } from '../../../modules/comments/infrastructure/repositories/mongo-comments-read.repository';
+import { CommentsCreatedEvent } from '../../../modules/comments/domain/entity/comments.entity';
+import { CommentsDeletedEvent } from '../../../modules/comments/domain/entity/comments.entity';
+import { CommentLikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
+import { CommentUnlikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
+import { CommentCreatedEventHandler } from '../../../modules/comments/application/event-handlers/comment-created.event-handler';
+import { CommentDeletedEventHandler } from '../../../modules/comments/application/event-handlers/comment-deleted.event-handler';
+import { CommentLikedEventHandler } from '../../../modules/comments/application/event-handlers/comment-liked.event-handler';
+import { CommentUnlikedEventHandler } from '../../../modules/comments/application/event-handlers/comment-unliked.event-handler';
+
 export class Container {
   public messageBus: MessageBus;
   public writeDatabase: WriteDatabase;
@@ -93,6 +117,12 @@ export class Container {
     );
     const postReadRepository = new MongoPostReadRepository(this.readDatabase);
 
+    // Comments module repositories
+    const commentWriteRepository = new PostgresCommentsWriteRepository(
+      this.writeDatabase
+    );
+    const commentReadRepository = new MongoCommentsReadRepository(this.readDatabase);
+
     // ===== USER COMMAND HANDLERS =====
     this.messageBus.registerCommandHandler(
       'RegisterUserCommand',
@@ -123,6 +153,27 @@ export class Container {
     this.messageBus.registerCommandHandler(
       UnlikePostCommand.name,
       new UnlikePostCommandHandler(postWriteRepository, this.messageBus)
+    );
+
+    // ===== COMMENTS COMMAND HANDLERS =====
+    this.messageBus.registerCommandHandler(
+      CreateCommentCommand.name,
+      new CreateCommentCommandHandler(commentWriteRepository, this.messageBus)
+    );
+
+    this.messageBus.registerCommandHandler(
+      DeleteCommentCommand.name,
+      new DeleteCommentCommandHandler(commentWriteRepository, this.messageBus)
+    );
+
+    this.messageBus.registerCommandHandler(
+      LikeCommentCommand.name,
+      new LikeCommentCommandHandler(commentWriteRepository, this.messageBus)
+    );
+
+    this.messageBus.registerCommandHandler(
+      UnlikeCommentCommand.name,
+      new UnlikeCommentCommandHandler(commentWriteRepository, this.messageBus)
     );
 
     // ===== USER QUERY HANDLERS =====
@@ -177,6 +228,17 @@ export class Container {
       new FindPostsByLikesRangeQueryHandler(postReadRepository)
     );
 
+    // ===== COMMENTS QUERY HANDLERS =====
+    this.messageBus.registerQueryHandler(
+      FindCommentQuery.name,
+      new FindCommentQueryHandler(commentReadRepository)
+    );
+
+    this.messageBus.registerQueryHandler(
+      FindCommentsByPostQuery.name,
+      new FindCommentsByPostQueryHandler(commentReadRepository)
+    );
+
     // ===== USER EVENT HANDLERS =====
     this.messageBus.registerEventHandler('UserRegisteredEvent', [
       new UserRegisteredEventHandler(userReadRepository, broadcaster),
@@ -205,6 +267,23 @@ export class Container {
 
     this.messageBus.registerEventHandler(LikeRemovedEvent.name, [
       new LikeRemovedEventHandler(postReadRepository),
+    ]);
+
+    // ===== COMMENTS EVENT HANDLERS =====
+    this.messageBus.registerEventHandler(CommentsCreatedEvent.name, [
+      new CommentCreatedEventHandler(commentReadRepository),
+    ]);
+
+    this.messageBus.registerEventHandler(CommentsDeletedEvent.name, [
+      new CommentDeletedEventHandler(commentReadRepository),
+    ]);
+
+    this.messageBus.registerEventHandler(CommentLikedEvent.name, [
+      new CommentLikedEventHandler(commentReadRepository),
+    ]);
+
+    this.messageBus.registerEventHandler(CommentUnlikedEvent.name, [
+      new CommentUnlikedEventHandler(commentReadRepository),
     ]);
   }
 

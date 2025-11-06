@@ -1,6 +1,11 @@
-import { PostReadModel } from "../../../post/domain/interfaces/post-read-model.interface";
 import { CommentsReadModel } from "./comments-read-model.interface";
 
 export interface CommentsReadRepository {
-  save(comments: CommentsReadModel): Promise<PostReadModel>
+  save(comment: CommentsReadModel): Promise<void>;
+  findById(id: string): Promise<CommentsReadModel | null>;
+  findByPostId(postId: string): Promise<CommentsReadModel[]>;
+  findByUserId(userId: string): Promise<CommentsReadModel[]>;
+  delete(id: string): Promise<void>;
+  findWithUserByPostId(postId: string): Promise<CommentsReadModel[]>;
+  countByPostId(postId: string): Promise<number>;
 }

@@ -1,21 +1,29 @@
-# 🚀 Post Module API Endpoints
+# Post & Comments API Endpoints
 
-API completa para el módulo de posts con arquitectura CQRS (Command Query Responsibility Segregation).
+API completa para los módulos de posts y comments con arquitectura CQRS (Command Query Responsibility Segregation).
 
-## 📋 Tabla de Contenido
+## Tabla de Contenido
 
-- [🔥 Commands (Write Operations)](#-commands-write-operations)
-- [🔍 Queries (Read Operations)](#-queries-read-operations)
-- [🔍 Query Parameters](#-query-parameters)
-- [💗 Likes Management](#-likes-management)
-- [🌊 Timeline & Infinite Scroll](#-timeline--infinite-scroll)
-- [📊 Advanced Queries](#-advanced-queries)
-- [🔒 Error Codes](#-error-codes)
-- [📝 Response Format](#-response-format)
+- [Posts Module](#posts-module)
+  - [Commands (Write Operations)](#commands-write-operations)
+  - [Queries (Read Operations)](#queries-read-operations)
+- [Comments Module](#comments-module)
+  - [Commands (Write Operations)](#comments-commands-write-operations)
+  - [Queries (Read Operations)](#comments-queries-read-operations)
+- [Query Parameters](#query-parameters)
+- [Likes Management](#likes-management)
+- [Timeline & Infinite Scroll](#timeline--infinite-scroll)
+- [Advanced Queries](#advanced-queries)
+- [Error Codes](#-error-codes)
+- [Response Format](#response-format)
 
 ---
 
-## 🔥 Commands (Write Operations)
+---
+
+## Posts Module
+
+### Commands (Write Operations)
 
 ### `POST /api/posts`
 **Crear un nuevo post**
@@ -108,7 +116,7 @@ API completa para el módulo de posts con arquitectura CQRS (Command Query Respo
 
 ---
 
-## 🔍 Queries (Read Operations)
+## Queries (Read Operations)
 
 ### `GET /api/posts/:postId`
 **Obtener un post específico**
@@ -207,7 +215,184 @@ GET /api/posts/user/123e4567-e89b-12d3-a456-426614174000?limit=5&offset=10
 
 ---
 
-## 🌊 Timeline & Infinite Scroll
+## Comments Module
+
+### Commands (Write Operations)
+
+### `POST /api/comments`
+**Crear un nuevo comentario**
+
+**Body:**
+```json
+{
+  "postId": "123e4567-e89b-12d3-a456-426614174000",
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "content": "Este es mi primer comentario en el sistema CQRS!"
+}
+```
+
+**Validaciones:**
+- `postId`: UUID válido de post existente (requerido)
+- `userId`: UUID válido de usuario existente (requerido)
+- `content`: Texto del comentario, máximo 280 caracteres (requerido)
+
+**Response:**
+```json
+{
+  "message": "Comment creado exitosamente"
+}
+```
+
+---
+
+### `POST /api/comments/:commentId/like`
+**Dar like a un comentario**
+
+**URL Parameters:**
+- `commentId`: UUID del comentario al que se dará like
+
+**Body:**
+```json
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+**Validaciones:**
+- `userId`: UUID válido de usuario que dará like (requerido)
+
+**Response:**
+```json
+{
+  "message": "Comment liked exitosamente"
+}
+```
+
+---
+
+### `POST /api/comments/:commentId/unlike`
+**Quitar like a un comentario**
+
+**URL Parameters:**
+- `commentId`: UUID del comentario al que se quitará like
+
+**Body:**
+```json
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+**Validaciones:**
+- `userId`: UUID válido de usuario que quitará like (requerido)
+
+**Response:**
+```json
+{
+  "message": "Comment unliked exitosamente"
+}
+```
+
+---
+
+### `DELETE /api/comments/:commentId`
+**Eliminar un comentario (soft delete)**
+
+**URL Parameters:**
+- `commentId`: UUID del comentario a eliminar
+
+**Body:**
+```json
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+**Validaciones:**
+- `userId`: UUID válido de usuario dueño del comentario (requerido)
+
+**Response:**
+```json
+{
+  "message": "Comment deleted exitosamente"
+}
+```
+
+---
+
+## Queries (Read Operations)
+
+### `GET /api/comments/:commentId`
+**Obtener un comentario específico**
+
+**URL Parameters:**
+- `commentId`: UUID del comentario a obtener
+
+**Response:**
+```json
+{
+  "id": "f445a1cd-8378-4373-882e-74fb1d1357ae",
+  "postId": "b44b74ca-8705-40dd-a2b5-84fb1856e631",
+  "userId": "a123b456-c789-0123-d456-789012345678",
+  "content": "Este es un comentario interesante!",
+  "likesCount": 3,
+  "timestamps": {
+    "createdAt": {
+      "value": "2025-11-05T02:07:09.887Z"
+    },
+    "updatedAt": {
+      "value": "2025-11-05T02:15:30.123Z"
+    }
+  }
+}
+```
+
+---
+
+### `GET /api/posts/:postId/comments`
+**Obtener comentarios de un post específico**
+
+**URL Parameters:**
+- `postId`: UUID del post
+
+**Query Parameters:**
+- `limit`: Número de comentarios a devolver (default: 50, máximo: 100)
+- `offset`: Número de comentarios a saltar (default: 0)
+
+**Examples:**
+```bash
+GET /api/posts/123e4567-e89b-12d3-a456-426614174000/comments
+GET /api/posts/123e4567-e89b-12d3-a456-426614174000/comments?limit=10&offset=0
+GET /api/posts/123e4567-e89b-12d3-a456-426614174000/comments?limit=20&offset=20
+```
+
+**Response:**
+```json
+{
+  "comments": [
+    {
+      "id": "f445a1cd-8378-4373-882e-74fb1d1357ae",
+      "postId": "b44b74ca-8705-40dd-a2b5-84fb1856e631",
+      "userId": "a123b456-c789-0123-d456-789012345678",
+      "content": "Este es un comentario interesante!",
+      "likesCount": 0,
+      "timestamps": {
+        "createdAt": { "value": "2025-11-05T02:07:09.887Z" },
+        "updatedAt": { "value": "2025-11-05T02:07:09.887Z" }
+      }
+    }
+  ],
+  "pagination": {
+    "limit": 50,
+    "offset": 0,
+    "total": 1
+  }
+}
+```
+
+---
+
+## Timeline & Infinite Scroll
 
 ### `GET /api/posts/timeline`
 **Timeline general (infinite scroll)**
@@ -261,7 +446,7 @@ GET /api/posts/user/123e4567-e89b-12d3-a456-426614174000/timeline?limit=5&afterP
 
 ---
 
-## 📊 Advanced Queries
+## Advanced Queries
 
 ### `GET /api/posts/most-liked`
 **Posts más populares**
@@ -328,22 +513,23 @@ GET /api/posts/by-likes?minLikes=1&maxLikes=5&limit=10
 
 ---
 
-## 🔍 Query Parameters Reference
+## Query Parameters Reference
 
 | Parámetro | Tipo | Default | Descripción | Máximo |
 |-----------|------|---------|-------------|--------|
-| `limit` | number | 50 | Posts por página | 100 |
-| `offset` | number | 0 | Posts a saltar (paginación tradicional) | - |
+| `limit` | number | 50 | Registros por página | 100 |
+| `offset` | number | 0 | Registros a saltar (paginación tradicional) | - |
 | `afterPostId` | string | - | ID del último post (infinite scroll) | - |
 | `minLikes` | number | - | Likes mínimo (requerido para by-likes) | - |
 | `maxLikes` | number | - | Likes máximo (requerido para by-likes) | - |
 
 ---
 
-## 💗 Likes Management
+## Likes Management
 
 ### Como funciona el sistema de likes:
 
+#### Posts:
 1. **Dar like:**
    - Incrementa `likesCount` en el post
    - Dispara `LikeCreatedEvent`
@@ -354,14 +540,26 @@ GET /api/posts/by-likes?minLikes=1&maxLikes=5&limit=10
    - Dispara `LikeRemovedEvent`
    - Actualiza `updatedAt` del post
 
+#### Comments:
+1. **Dar like:**
+   - Incrementa `likesCount` en el comentario
+   - Dispara `CommentLikedEvent`
+   - Actualiza en tiempo real el contador
+
+2. **Quitar like:**
+   - Decrementa `likesCount` del comentario (nunca menor a 0)
+   - Dispara `CommentUnlikedEvent`
+   - Actualiza `updatedAt` del comentario
+
 3. **Validaciones:**
-   - Un usuario puede dar like múltiples veces a diferentes posts
+   - Un usuario puede dar like a múltiples posts/comentarios
    - El mismo userId puede quitar su like
-   - El contador nunca será negativo
+   - Los contadores nunca serán negativos
+   - El usuario dueño de un post/comentario puede modificarlo o eliminarlo
 
 ---
 
-## 🔒 Error Codes
+## Error Codes
 
 | Código | Descripción | Ejemplo |
 |-------|-------------|---------|
@@ -403,7 +601,7 @@ GET /api/posts/by-likes?minLikes=1&maxLikes=5&limit=10
 
 ---
 
-## 📝 Response Format
+## Response Format
 
 ### Posts Array Response:
 ```json
@@ -442,6 +640,45 @@ GET /api/posts/by-likes?minLikes=1&maxLikes=5&limit=10
 }
 ```
 
+### Comments Array Response:
+```json
+{
+  "comments": [
+    {
+      "id": "string",
+      "postId": "string",
+      "userId": "string",
+      "content": "string",
+      "likesCount": "number",
+      "timestamps": {
+        "createdAt": { "value": "ISO-8601 timestamp" },
+        "updatedAt": { "value": "ISO-8601 timestamp" }
+      }
+    }
+  ],
+  "pagination": {
+    "limit": "number",
+    "offset": "number",
+    "total": "number"
+  }
+}
+```
+
+### Single Comment Response:
+```json
+{
+  "id": "string",
+  "postId": "string",
+  "userId": "string",
+  "content": "string",
+  "likesCount": "number",
+  "timestamps": {
+    "createdAt": { "value": "ISO-8601 timestamp" },
+    "updatedAt": { "value": "ISO-8601 timestamp" }
+  }
+}
+```
+
 ### Message Response:
 ```json
 {
@@ -458,7 +695,7 @@ GET /api/posts/by-likes?minLikes=1&maxLikes=5&limit=10
 
 ---
 
-## 🚀 Uso Recomendado
+## Uso Recomendado
 
 ### Para Timeline Principal (Home Feed):
 ```bash
@@ -487,7 +724,7 @@ GET /api/posts/by-likes?minLikes=5&maxLikes=50&limit=20
 
 ---
 
-## ⚡ CQRS Architecture
+## CQRS Architecture
 
 Este API implementa:
 

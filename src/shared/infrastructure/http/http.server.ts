@@ -9,9 +9,11 @@ import fastifyWebsocket from '@fastify/websocket';
 // Internals Modules
 import { UserModule } from '../../../modules/user/user.module';
 import { PostModule } from '../../../modules/post/post.module';
+import { CommentsModule } from '../../../modules/comments/comments.module';
 import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 import { PostController } from '../../../modules/post/presentation/controllers/post.controller';
+import { CommentsController } from '../../../modules/comments/presentation/controllers/comments.controller';
 import { MessageBus } from '../../domain/message-bus';
 import { getLoggerOptions } from '../common/logger/logger.options';
 import jwtAuthPlugin from './plugins/jwt-auth.plugin';
@@ -20,6 +22,7 @@ export class HttpServer {
   private instance: FastifyInstance;
   private userController?: UserController;
   private postController?: PostController;
+  private commentsController?: CommentsController;
   private messageBus: MessageBus;
   private sockets: any[] = []; // Array para los sockets activos
 
@@ -111,13 +114,15 @@ export class HttpServer {
       }
     );
 
-    // Inicializa el UserController con el messageBus
+    // Inicializa los Controllers con el messageBus
     this.userController = UserModule.initialize(this.messageBus);
     this.postController = PostModule.initialize(this.messageBus);
+    this.commentsController = CommentsModule.initialize(this.messageBus);
 
     // Registra las rutas
     this.registerUserRoutes(this.userController);
     this.registerPostRoutes(this.postController);
+    this.registerCommentsRoutes(this.commentsController);
   }
 
   private registerUserRoutes(userController: UserController): void {
@@ -233,6 +238,60 @@ export class HttpServer {
         req: FastifyRequest<RouteGenericInterface>,
         reply: FastifyReply<RouteGenericInterface>
       ): Promise<void> => postController.getPostsByLikesRange(req, reply)
+    );
+  }
+
+  private registerCommentsRoutes(commentsController: CommentsController): void {
+    // ===== COMMANDS  =====
+
+    this.instance.post(
+      '/api/comments',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => commentsController.createComment(req, reply)
+    );
+
+    this.instance.post(
+      '/api/comments/:commentId/like',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => commentsController.likeComment(req, reply)
+    );
+
+    this.instance.post(
+      '/api/comments/:commentId/unlike',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => commentsController.unlikeComment(req, reply)
+    );
+
+    this.instance.delete(
+      '/api/comments/:commentId',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): any => commentsController.deleteComment(req, reply)
+    );
+
+    // ===== QUERIES (Read Operations) =====
+
+    this.instance.get(
+      '/api/comments/:commentId',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => commentsController.getComment(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/:postId/comments',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => commentsController.getCommentsByPost(req, reply)
     );
   }
 

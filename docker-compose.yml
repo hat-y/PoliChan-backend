@@ -24,8 +24,10 @@ services:
       - /app/node_modules
     command: npm run dev
     depends_on:
-      - postgres
-      - mongolo
+      postgres:
+        condition: service_healthy
+      mongolo:
+        condition: service_started
 
   postgres:
     image: postgres:latest
@@ -39,6 +41,11 @@ services:
       - '${POSTGRES_PORT}:5432'
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   mongolo:
     image: mongo:latest
