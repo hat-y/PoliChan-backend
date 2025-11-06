@@ -19,11 +19,6 @@ export class CommentLikedEventHandler implements EventHandler<CommentLikedEvent>
       throw new Error(`Comment with id ${event.commentId} not found in read model`);
     }
 
-    if (existingComment.user && existingComment.user.id === event.userId) {
-      console.log('User cannot like their own comment');
-      return;
-    }
-
     const updatedLikes = existingComment.likes.includes(event.userId)
       ? existingComment.likes
       : [...existingComment.likes, event.userId];
