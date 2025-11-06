@@ -1,6 +1,6 @@
 import { CommandHandler } from '../../../../shared/domain/command-handler';
 import { MessageBus } from '../../../../shared/domain/message-bus';
-import { Comments, CommentsCreatedEvent } from '../../domain/entity/comments.entity';
+import { Comments } from '../../domain/entity/comments.entity';
 import { CommentsWriteRepository } from '../../domain/interfaces/comments-write-repository.interface';
 import { CreateCommentCommand } from '../commands/create-comment.command';
 import { v4 } from 'uuid';

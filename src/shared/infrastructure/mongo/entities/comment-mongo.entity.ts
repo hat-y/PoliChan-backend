@@ -16,8 +16,8 @@ export class CommentMongoEntity {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'number', default: 0 })
-  likesCount: number;
+  @Column('simple-array')
+  likes: string[];
 
   @Column({ type: 'json', nullable: true })
   user?: {

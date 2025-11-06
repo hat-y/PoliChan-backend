@@ -5,6 +5,7 @@ export interface CommentsReadModel {
   postId: string;
   userId: string;
   content: string;
+  likes: string[];
   likesCount: number;
   timestamps: Timestamps
   user?: {

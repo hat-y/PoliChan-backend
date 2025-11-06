@@ -4,11 +4,13 @@ import { CommentsReadRepository } from '../../domain/interfaces/comments-read-re
 import { CommentsReadModel } from '../../domain/interfaces/comments-read-model.interface';
 import { UserReadRepository } from '../../../user/domain/interfaces/user-read-repository.interface';
 import { Timestamps, CreatedAt, UpdatedAt } from '../../../../shared/domain/datetime';
+import { CommentEventBroadcaster } from '../broadcasting/interfaces/comment-event-broadcaster.interface';
 
 export class CommentCreatedEventHandler implements EventHandler<CommentsCreatedEvent> {
   constructor(
     private commentReadRepository: CommentsReadRepository,
-    private userReadRepository: UserReadRepository
+    private userReadRepository: UserReadRepository,
+    private commentEventBroadcaster: CommentEventBroadcaster
   ) { }
 
   async handle(event: CommentsCreatedEvent): Promise<void> {
@@ -27,6 +29,7 @@ export class CommentCreatedEventHandler implements EventHandler<CommentsCreatedE
       postId: event.postId,
       userId: event.userId,
       content: event.content,
+      likes: event.likes,
       likesCount: event.likes.length,
       timestamps: timestamps,
       user: user
@@ -41,6 +44,8 @@ export class CommentCreatedEventHandler implements EventHandler<CommentsCreatedE
 
     await this.commentReadRepository.save(commentReadModel);
 
-    console.log(`Comment ${event.commentId} saved to read model`);
+    this.commentEventBroadcaster.broadcastCommentCreated(event);
+
+    console.log(`Comment ${event.commentId} saved to read model and broadcasted`);
   }
 }

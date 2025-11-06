@@ -20,7 +20,6 @@ export class UnlikeCommentCommandHandler implements CommandHandler<UnlikeComment
 
     await this.commentsRepository.save(unlikedComment);
 
-    // Solo publicar evento si hay cambios (el usuario había dado like antes)
     if (event) {
       this.messageBus.publishEventAsync(event);
     }

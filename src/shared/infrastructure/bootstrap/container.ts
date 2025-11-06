@@ -51,6 +51,7 @@ import { FindUserQuery } from '../../../modules/user/application/queries/find-us
 import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
 import { LoginUserQuery } from '../../../modules/user/application/queries/login-user.query';
 import { WebSocketPostEventBroadcaster } from '../../../modules/post/application/broadcasting/websocket-post-event-broadcaster';
+import { WebSocketCommentEventBroadcaster } from '../../../modules/comments/application/broadcasting/websocket-comment-event-broadcaster';
 
 // Comments module imports
 import { CreateCommentCommand } from '../../../modules/comments/application/commands/create-comment.command';
@@ -67,14 +68,12 @@ import { FindCommentQueryHandler } from '../../../modules/comments/application/h
 import { FindCommentsByPostQueryHandler } from '../../../modules/comments/application/handlers/find-comments-by-post-query.handler';
 import { PostgresCommentsWriteRepository } from '../../../modules/comments/infrastructure/repositories/postgres-comments-write.repository';
 import { MongoCommentsReadRepository } from '../../../modules/comments/infrastructure/repositories/mongo-comments-read.repository';
-import { CommentsCreatedEvent } from '../../../modules/comments/domain/entity/comments.entity';
-import { CommentsDeletedEvent } from '../../../modules/comments/domain/entity/comments.entity';
-import { CommentLikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
-import { CommentUnlikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
+import { CommentsCreatedEvent, CommentsUpdatedEvent, CommentsDeletedEvent, CommentLikedEvent, CommentUnlikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
 import { CommentCreatedEventHandler } from '../../../modules/comments/application/event-handlers/comment-created.event-handler';
 import { CommentDeletedEventHandler } from '../../../modules/comments/application/event-handlers/comment-deleted.event-handler';
 import { CommentLikedEventHandler } from '../../../modules/comments/application/event-handlers/comment-liked.event-handler';
 import { CommentUnlikedEventHandler } from '../../../modules/comments/application/event-handlers/comment-unliked.event-handler';
+import { CommentUpdatedEventHandler } from '../../../modules/comments/application/event-handlers/comment-updated.event-handler';
 
 export class Container {
   public messageBus: MessageBus;
@@ -108,6 +107,10 @@ export class Container {
     );
 
     const postBroadcaster = new WebSocketPostEventBroadcaster(() =>
+      this.httpServer.getWebSocketServer()
+    );
+
+    const commentBroadcaster = new WebSocketCommentEventBroadcaster(() =>
       this.httpServer.getWebSocketServer()
     );
 
@@ -271,19 +274,23 @@ export class Container {
 
     // ===== COMMENTS EVENT HANDLERS =====
     this.messageBus.registerEventHandler(CommentsCreatedEvent.name, [
-      new CommentCreatedEventHandler(commentReadRepository),
+      new CommentCreatedEventHandler(commentReadRepository, userReadRepository, commentBroadcaster),
+    ]);
+
+    this.messageBus.registerEventHandler(CommentsUpdatedEvent.name, [
+      new CommentUpdatedEventHandler(commentReadRepository, commentBroadcaster),
     ]);
 
     this.messageBus.registerEventHandler(CommentsDeletedEvent.name, [
-      new CommentDeletedEventHandler(commentReadRepository),
+      new CommentDeletedEventHandler(commentReadRepository, commentBroadcaster),
     ]);
 
     this.messageBus.registerEventHandler(CommentLikedEvent.name, [
-      new CommentLikedEventHandler(commentReadRepository),
+      new CommentLikedEventHandler(commentReadRepository, commentBroadcaster),
     ]);
 
     this.messageBus.registerEventHandler(CommentUnlikedEvent.name, [
-      new CommentUnlikedEventHandler(commentReadRepository),
+      new CommentUnlikedEventHandler(commentReadRepository, commentBroadcaster),
     ]);
   }
 

@@ -2,10 +2,12 @@ import { EventHandler } from '../../../../shared/domain/event-handler';
 import { CommentsUpdatedEvent } from '../../domain/entity/comments.entity';
 import { CommentsReadModel } from '../../domain/interfaces/comments-read-model.interface';
 import { CommentsReadRepository } from '../../domain/interfaces/comments-read-repository.interface';
+import { CommentEventBroadcaster } from '../broadcasting/interfaces/comment-event-broadcaster.interface';
 
 export class CommentUpdatedEventHandler implements EventHandler<CommentsUpdatedEvent> {
   constructor(
-    private commentReadRepository: CommentsReadRepository
+    private commentReadRepository: CommentsReadRepository,
+    private commentEventBroadcaster: CommentEventBroadcaster
   ) { }
 
   async handle(event: CommentsUpdatedEvent): Promise<void> {
@@ -25,6 +27,8 @@ export class CommentUpdatedEventHandler implements EventHandler<CommentsUpdatedE
 
     await this.commentReadRepository.save(updatedComment);
 
-    console.log(`Comment ${event.commentId} content updated`);
+    this.commentEventBroadcaster.broadcastCommentUpdated(event);
+
+    console.log(`Comment ${event.commentId} content updated and broadcasted`);
   }
 }

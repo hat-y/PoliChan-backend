@@ -16,6 +16,7 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
       postId: comment.postId,
       userId: comment.userId,
       content: comment.content,
+      likes: comment.likes,
       likesCount: comment.likesCount,
       user: comment.user,
       timestamps: {
@@ -24,6 +25,35 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
         deletedAt: comment.timestamps.deletedAt?.toDate()
       }
     });
+  }
+
+  async update(comment: CommentsReadModel): Promise<void> {
+    const repository = this.readDatabase.connection.getRepository('CommentMongoEntity');
+
+    console.log('MongoCommentsReadRepository.update called with:', {
+      id: comment.id,
+      likes: comment.likes,
+      likesCount: comment.likesCount,
+      likesLength: comment.likes?.length
+    });
+
+    // Usar el método nativo de MongoDB a través del manager
+    const result = await this.readDatabase.connection
+      .getMongoRepository('CommentMongoEntity')
+      .updateOne(
+        { _id: comment.id },
+        {
+          $set: {
+            content: comment.content,
+            likes: comment.likes,
+            likesCount: comment.likesCount,
+            user: comment.user,
+            'timestamps.updatedAt': comment.timestamps.updatedAt.toDate()
+          }
+        }
+      );
+
+    console.log('MongoDB update result:', result);
   }
 
   async findById(id: string): Promise<CommentsReadModel | null> {
@@ -37,7 +67,24 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
 
     if (!entity) return null;
 
-    return this.mapEntityToReadModel(entity);
+    console.log('MongoCommentsReadRepository.findById - Raw entity from MongoDB:', {
+      id: entity._id,
+      likes: entity.likes,
+      likesCount: entity.likesCount,
+      likesType: typeof entity.likesCount,
+      likesLength: entity.likes?.length
+    });
+
+    const result = this.mapEntityToReadModel(entity);
+
+    console.log('MongoCommentsReadRepository.findById - Mapped result:', {
+      id: result.id,
+      likes: result.likes,
+      likesCount: result.likesCount,
+      likesLength: result.likes?.length
+    });
+
+    return result;
   }
 
   async findByPostId(postId: string): Promise<CommentsReadModel[]> {
@@ -50,7 +97,28 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
       order: { 'timestamps.createdAt': 'ASC' }
     });
 
-    return entities.map(entity => this.mapEntityToReadModel(entity));
+    console.log('MongoCommentsReadRepository.findByPostId - Raw entities from MongoDB:',
+      entities.map(e => ({
+        id: e._id,
+        likes: e.likes,
+        likesCount: e.likesCount,
+        likesType: typeof e.likesCount,
+        likesLength: e.likes?.length
+      }))
+    );
+
+    const result = entities.map(entity => this.mapEntityToReadModel(entity));
+
+    console.log('MongoCommentsReadRepository.findByPostId - Mapped results:',
+      result.map(r => ({
+        id: r.id,
+        likes: r.likes,
+        likesCount: r.likesCount,
+        likesLength: r.likes?.length
+      }))
+    );
+
+    return result;
   }
 
   async findByUserId(userId: string): Promise<CommentsReadModel[]> {
@@ -89,7 +157,28 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
       order: { 'timestamps.createdAt': 'ASC' }
     });
 
-    return entities.map(entity => this.mapEntityToReadModel(entity));
+    console.log('MongoCommentsReadRepository.findWithUserByPostId - Raw entities from MongoDB:',
+      entities.map(e => ({
+        id: e._id,
+        likes: e.likes,
+        likesCount: e.likesCount,
+        likesType: typeof e.likesCount,
+        likesLength: e.likes?.length
+      }))
+    );
+
+    const result = entities.map(entity => this.mapEntityToReadModel(entity));
+
+    console.log('MongoCommentsReadRepository.findWithUserByPostId - Mapped results:',
+      result.map(r => ({
+        id: r.id,
+        likes: r.likes,
+        likesCount: r.likesCount,
+        likesLength: r.likes?.length
+      }))
+    );
+
+    return result;
   }
 
   async countByPostId(postId: string): Promise<number> {
@@ -109,12 +198,16 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
       entity.timestamps.deletedAt ? CreatedAt.from(entity.timestamps.deletedAt) : undefined
     );
 
+    const likes = entity.likes || [];
+    const likesCount = likes.length; // Calculate dynamically from the array
+
     return {
       id: entity._id,
       postId: entity.postId,
       userId: entity.userId,
       content: entity.content,
-      likesCount: entity.likesCount || 0,
+      likes: likes,
+      likesCount: likesCount,
       timestamps,
       user: entity.user ? {
         id: entity.user.id,

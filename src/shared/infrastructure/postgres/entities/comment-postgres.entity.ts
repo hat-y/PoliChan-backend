@@ -16,8 +16,11 @@ export class CommentPostgresEntity {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'simple-array', default: [] })
-  likes: string[];
+  @Column('text', { array: true, default: () => 'ARRAY[]::text[]' })
+  likes: string[]
+
+  @Column({ type: 'int', default: 0 })
+  likesCount: string;
 
   @Column({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

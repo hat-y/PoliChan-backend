@@ -16,7 +16,6 @@ export class DeleteCommentCommandHandler implements CommandHandler<DeleteComment
       throw new Error('Comment not found');
     }
 
-    // Verificar que el usuario que intenta eliminar es el dueño del comentario
     if (existingComment.userId !== command.userId) {
       throw new Error('User not authorized to delete this comment');
     }
@@ -25,7 +24,6 @@ export class DeleteCommentCommandHandler implements CommandHandler<DeleteComment
 
     await this.commentsRepository.save(deletedComment);
 
-    // Publicar evento de comentario eliminado
     this.messageBus.publishEventAsync(event);
   }
 }

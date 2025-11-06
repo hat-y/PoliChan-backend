@@ -4,7 +4,9 @@ import { CommentsReadModel } from '../../domain/interfaces/comments-read-model.i
 import { FindCommentsByPostQuery } from '../queries/find-comments-by-post.query';
 
 export class FindCommentsByPostQueryHandler implements QueryHandler<FindCommentsByPostQuery, CommentsReadModel[]> {
-  constructor(private commentsReadRepository: CommentsReadRepository) {}
+  constructor(
+    private commentsReadRepository: CommentsReadRepository
+  ) { }
 
   async handle(query: FindCommentsByPostQuery): Promise<CommentsReadModel[]> {
     return await this.commentsReadRepository.findWithUserByPostId(query.postId);

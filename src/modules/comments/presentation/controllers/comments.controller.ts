@@ -62,6 +62,8 @@ export class CommentsController {
       const { commentId } = req.params as { commentId: string };
       const { userId } = req.body as { userId?: string };
 
+      console.log('CommentsController.likeComment called:', { commentId, userId });
+
       if (!commentId || !userId) {
         reply.status(400).send({
           error: 'commentId y userId son requeridos',
@@ -70,13 +72,16 @@ export class CommentsController {
       }
 
       const command = new LikeCommentCommand(v4(), commentId, userId);
+      console.log('Executing command:', command);
 
       await this.messageBus.executeCommand(command);
+      console.log('Command executed successfully');
 
       reply.send({
         message: 'Comment liked exitosamente',
       });
     } catch (error) {
+      console.log('Error in likeComment:', error);
       req.log.error(error instanceof Error ? error : new Error('Unknown error'), 'Failed to like comment');
       reply.status(500).send({
         error: error instanceof Error ? error.message : 'Error desconocido',

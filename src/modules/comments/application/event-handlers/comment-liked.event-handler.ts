@@ -2,10 +2,12 @@ import { EventHandler } from '../../../../shared/domain/event-handler';
 import { CommentLikedEvent } from '../../domain/entity/comments.entity';
 import { CommentsReadModel } from '../../domain/interfaces/comments-read-model.interface';
 import { CommentsReadRepository } from '../../domain/interfaces/comments-read-repository.interface';
+import { CommentEventBroadcaster } from '../broadcasting/interfaces/comment-event-broadcaster.interface';
 
 export class CommentLikedEventHandler implements EventHandler<CommentLikedEvent> {
   constructor(
-    private commentReadRepository: CommentsReadRepository
+    private commentReadRepository: CommentsReadRepository,
+    private commentEventBroadcaster: CommentEventBroadcaster
   ) { }
 
   async handle(event: CommentLikedEvent): Promise<void> {
@@ -22,14 +24,34 @@ export class CommentLikedEventHandler implements EventHandler<CommentLikedEvent>
       return;
     }
 
+    const updatedLikes = existingComment.likes.includes(event.userId)
+      ? existingComment.likes
+      : [...existingComment.likes, event.userId];
+
+    const updatedTimestamps = existingComment.timestamps.update();
+
     const updatedComment: CommentsReadModel = {
       ...existingComment,
-      likesCount: existingComment.likesCount + 1,
-      timestamps: existingComment.timestamps.update()
+      likes: updatedLikes,
+      likesCount: updatedLikes.length,
+      timestamps: updatedTimestamps,
     };
 
-    await this.commentReadRepository.save(updatedComment);
+    try {
+      await this.commentReadRepository.save(updatedComment);
+      console.log('Comment saved to MongoDB successfully');
+    } catch (error) {
+      console.log('MongoDB duplicate error, trying to update instead:', error);
+      try {
+        await this.commentReadRepository.update(updatedComment);
+        console.log('Comment updated to MongoDB successfully');
+      } catch (updateError) {
+        console.error('Failed to update MongoDB:', updateError);
+      }
+    }
 
-    console.log(`Comment ${event.commentId} liked by user ${event.userId}`);
+    this.commentEventBroadcaster.broadcastCommentLiked(event);
+
+    console.log(`Comment ${event.commentId} liked by user ${event.userId} and broadcasted`);
   }
 }

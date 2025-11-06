@@ -32,7 +32,8 @@ export class PostCreatedEventHandler implements EventHandler<PostCreatedEvent> {
       id: event.postId,
       userId: event.userId,
       content: event.content,
-      likesCount: event.likesCount,
+      likes: event.likes,
+      likesCount: event.likes.length,
       timestamps: timestamps,
       user: user
         ? {
