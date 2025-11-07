@@ -1,6 +1,6 @@
-# Post & Comments API Endpoints
+# Post, Comments & Mentions API Endpoints
 
-API completa para los módulos de posts y comments con arquitectura CQRS (Command Query Responsibility Segregation).
+API completa para los módulos de posts, comments y mentions con arquitectura CQRS (Command Query Responsibility Segregation).
 
 ## Tabla de Contenido
 
@@ -10,6 +10,9 @@ API completa para los módulos de posts y comments con arquitectura CQRS (Comman
 - [Comments Module](#comments-module)
   - [Commands (Write Operations)](#comments-commands-write-operations)
   - [Queries (Read Operations)](#comments-queries-read-operations)
+- [Mentions Module](#mentions-module)
+  - [User Mentions](#user-mentions)
+  - [Post Mentions](#post-mentions)
 - [Query Parameters](#query-parameters)
 - [Likes Management](#likes-management)
 - [Timeline & Infinite Scroll](#timeline--infinite-scroll)
@@ -442,6 +445,187 @@ GET /api/posts/timeline?limit=10&afterPostId=xyz-789-uvw-012
 GET /api/posts/user/123e4567-e89b-12d3-a456-426614174000/timeline
 GET /api/posts/user/123e4567-e89b-12d3-a456-426614174000/timeline?limit=10
 GET /api/posts/user/123e4567-e89b-12d3-a456-426614174000/timeline?limit=5&afterPostId=xyz-789
+```
+
+---
+
+## Mentions Module
+
+Sistema completo de @menciones con procesamiento asíncrono y arquitectura CQRS. Los posts se crean instantáneamente y las menciones se procesan en background.
+
+### 🔄 Cómo funciona
+1. Usuario crea post con `@usuario`
+2. Post se guarda inmediatamente (no bloquea)
+3. `PostCreatedEvent` se publica
+4. **Background**: Se extraen menciones, validan usuarios y guardan en PostgreSQL
+5. **Notificaciones**: Se envían eventos a usuarios mencionados
+6. **Read Models**: MongoDB actualiza datos para consultas rápidas
+
+---
+
+## User Mentions
+
+### `GET /api/users/:userId/mentions`
+**Obtener menciones de un usuario (timeline de notificaciones)**
+
+**URL Parameters:**
+- `userId`: UUID del usuario cuyas menciones se quieren obtener
+
+**Authentication:** Requerido (header `Authorization: Bearer <token>`)
+
+**Query Parameters:**
+- `limit`: Número de menciones a devolver (default: 20, max: 100)
+- `offset`: Para paginación (default: 0)
+- `includeRead`: Incluir menciones ya leídas (default: false)
+- `fromDate`: Fecha de inicio (ISO 8601 string, opcional)
+- `toDate`: Fecha de fin (ISO 8601 string, opcional)
+
+**Examples:**
+```bash
+GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions
+GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions?limit=10
+GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions?includeRead=true
+GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions?fromDate=2025-11-01T00:00:00Z
+```
+
+**Response:**
+```json
+{
+  "mentions": [
+    {
+      "id": "mention-1a2b3c4d-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "post": {
+        "id": "post-6d7e8f9a-0b1c-4d2e-8f3a-4b5c6d7e8f9a",
+        "content": "¡Hola @usuario, revisa este post sobre desarrollo!",
+        "createdAt": "2025-11-06T23:45:06.564Z"
+      },
+      "mentionedBy": {
+        "id": "user-0a1b2c3d-e4f5-4a6b-7c8d-9e0f1a2b3c4d",
+        "username": "mateo",
+        "firstName": "Mateo",
+        "lastName": "García",
+        "profileImageUrl": "https://..."
+      },
+      "isRead": false,
+      "createdAt": "2025-11-06T23:45:06.564Z",
+      "engagementStats": {
+        "likesCount": 5,
+        "commentsCount": 2
+      }
+    }
+  ],
+  "pagination": {
+    "limit": 20,
+    "offset": 0,
+    "hasMore": true
+  }
+}
+```
+
+---
+
+### `GET /api/users/:userId/mentions/count`
+**Obtener contador de menciones de un usuario (para badges/notificaciones)**
+
+**URL Parameters:**
+- `userId`: UUID del usuario
+
+**Authentication:** Requerido
+
+**Query Parameters:**
+- `includeRead`: Incluir menciones leídas en el conteo (default: false)
+
+**Examples:**
+```bash
+GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions/count
+GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions/count?includeRead=true
+```
+
+**Response:**
+```json
+{
+  "totalMentions": 15,
+  "unreadMentions": 3,
+  "userId": "a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0"
+}
+```
+
+---
+
+## Post Mentions
+
+### `GET /api/posts/:postId/mentions`
+**Obtener usuarios mencionados en un post específico**
+
+**URL Parameters:**
+- `postId`: UUID del post
+
+**Authentication:** No requerido (público para ver menciones)
+
+**Query Parameters:**
+- `limit`: Número de menciones a devolver (default: 50, max: 100)
+- `offset`: Para paginación (default: 0)
+
+**Examples:**
+```bash
+GET /api/posts/b8c7d9e0-f1e2-4a3b-8c4d-f0e9f8c7d9e0f/mentions
+GET /api/posts/b8c7d9e0-f1e2-4a3b-8c4d-f0e9f8c7d9e0f/mentions?limit=10
+GET /api/posts/b8c7d9e0-f1e2-4a3b-8c4d-f0e9f8c7d9e0f/mentions?offset=20
+```
+
+**Response:**
+```json
+{
+  "mentions": [
+    {
+      "id": "mention-2b3c4d5e-f6a7-4b8c-9d0e-f1e9f2a3b4c5e",
+      "mentionedUser": {
+        "id": "user-c3d4e5f6-0b1c-4d2e-8f3a-4b5c6d7e8f9b",
+        "username": "masi",
+        "firstName": "Masi",
+        "lastName": "López",
+        "profileImageUrl": "https://..."
+      },
+      "mentionedBy": {
+        "id": "user-1a2b3c4d-e5f6-4a6b-7c8d-9e0f1a2b3c4e",
+        "username": "mateo",
+        "firstName": "Mateo",
+        "lastName": "García",
+        "profileImageUrl": "https://..."
+      },
+      "createdAt": "2025-11-06T23:45:06.564Z"
+    }
+  ],
+  "pagination": {
+    "limit": 50,
+    "offset": 0,
+    "hasMore": false
+  }
+}
+```
+
+---
+
+### `GET /api/posts/:postId/comments/count`
+**Obtener contador de comentarios de un post**
+
+**URL Parameters:**
+- `postId`: UUID del post
+
+**Query Parameters:** None
+
+**Examples:**
+```bash
+GET /api/posts/123e4567-e89b-12d3-a456-426614174000/comments/count
+```
+
+**Response:**
+```json
+{
+  "postId": "123e4567-e89b-12d3-a456-426614174000",
+  "totalComments": 25,
+  "activeComments": 23
+}
 ```
 
 ---
