@@ -53,6 +53,21 @@ import { LoginUserQuery } from '../../../modules/user/application/queries/login-
 import { WebSocketPostEventBroadcaster } from '../../../modules/post/application/broadcasting/websocket-post-event-broadcaster';
 import { WebSocketCommentEventBroadcaster } from '../../../modules/comments/application/broadcasting/websocket-comment-event-broadcaster';
 
+// Post Mentions module imports
+import { PostgresPostMentionWriteRepository } from '../../../modules/post/infrastructure/repositories/postgres-post-mention-write.repository';
+import { MongoPostMentionReadRepository } from '../../../modules/post/infrastructure/repositories/mongo-post-mention-read.repository';
+import { ContentProcessorService } from '../../../modules/post/domain/services/content-processor.service';
+import { PostCreatedForMentionsEventHandler } from '../../../modules/post/application/event-handlers/post-created-for-mentions.event-handler';
+import { UserMentionedNotificationEvent } from '../../../modules/post/domain/events/user-mentioned-notification.event';
+import { UserMentionedNotificationEventHandler } from '../../../modules/post/application/event-handlers/user-mentioned-notification.event-handler';
+import { UserMentionedReadModelEventHandler } from '../../../modules/post/application/event-handlers/user-mentioned-read-model.event-handler';
+import { GetUserMentionsQuery } from '../../../modules/post/application/queries/get-user-mentions.query';
+import { GetMentionCountQuery } from '../../../modules/post/application/queries/get-mention-count.query';
+import { GetPostMentionsQuery } from '../../../modules/post/application/queries/get-post-mentions.query';
+import { GetUserMentionsQueryHandler } from '../../../modules/post/application/handlers/get-user-mentions.query.handler';
+import { GetMentionCountQueryHandler } from '../../../modules/post/application/handlers/get-mention-count.query.handler';
+import { GetPostMentionsQueryHandler } from '../../../modules/post/application/handlers/get-post-mentions.query.handler';
+
 // Comments module imports
 import { CreateCommentCommand } from '../../../modules/comments/application/commands/create-comment.command';
 import { DeleteCommentCommand } from '../../../modules/comments/application/commands/delete-comment.command';
@@ -64,8 +79,10 @@ import { LikeCommentCommandHandler } from '../../../modules/comments/application
 import { UnlikeCommentCommandHandler } from '../../../modules/comments/application/handlers/unlike-comment-command.handler';
 import { FindCommentQuery } from '../../../modules/comments/application/queries/find-comment.query';
 import { FindCommentsByPostQuery } from '../../../modules/comments/application/queries/find-comments-by-post.query';
+import { CountCommentsByPostQuery } from '../../../modules/comments/application/queries/count-comments-by-post.query';
 import { FindCommentQueryHandler } from '../../../modules/comments/application/handlers/find-comment-query.handler';
 import { FindCommentsByPostQueryHandler } from '../../../modules/comments/application/handlers/find-comments-by-post-query.handler';
+import { CountCommentsByPostQueryHandler } from '../../../modules/comments/application/handlers/count-comments-by-post-query.handler';
 import { PostgresCommentsWriteRepository } from '../../../modules/comments/infrastructure/repositories/postgres-comments-write.repository';
 import { MongoCommentsReadRepository } from '../../../modules/comments/infrastructure/repositories/mongo-comments-read.repository';
 import { CommentsCreatedEvent, CommentsUpdatedEvent, CommentsDeletedEvent, CommentLikedEvent, CommentUnlikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
@@ -125,6 +142,15 @@ export class Container {
       this.writeDatabase
     );
     const commentReadRepository = new MongoCommentsReadRepository(this.readDatabase);
+
+    // Post Mentions module repositories
+    const postMentionWriteRepository = new PostgresPostMentionWriteRepository(
+      this.writeDatabase
+    );
+    const postMentionReadRepository = new MongoPostMentionReadRepository(this.readDatabase);
+
+    // Services
+    const contentProcessor = new ContentProcessorService(userWriteRepository);
 
     // ===== USER COMMAND HANDLERS =====
     this.messageBus.registerCommandHandler(
@@ -242,6 +268,27 @@ export class Container {
       new FindCommentsByPostQueryHandler(commentReadRepository)
     );
 
+    this.messageBus.registerQueryHandler(
+      CountCommentsByPostQuery.name,
+      new CountCommentsByPostQueryHandler(commentReadRepository)
+    );
+
+    // ===== POST MENTIONS QUERY HANDLERS =====
+    this.messageBus.registerQueryHandler(
+      GetUserMentionsQuery.name,
+      new GetUserMentionsQueryHandler(postMentionReadRepository)
+    );
+
+    this.messageBus.registerQueryHandler(
+      GetMentionCountQuery.name,
+      new GetMentionCountQueryHandler(postMentionReadRepository)
+    );
+
+    this.messageBus.registerQueryHandler(
+      GetPostMentionsQuery.name,
+      new GetPostMentionsQueryHandler(postMentionReadRepository)
+    );
+
     // ===== USER EVENT HANDLERS =====
     this.messageBus.registerEventHandler('UserRegisteredEvent', [
       new UserRegisteredEventHandler(userReadRepository, broadcaster),
@@ -257,6 +304,11 @@ export class Container {
         postReadRepository,
         userReadRepository,
         postBroadcaster
+      ),
+      new PostCreatedForMentionsEventHandler(
+        contentProcessor,
+        postMentionWriteRepository,
+        this.messageBus
       ),
     ]);
 
@@ -291,6 +343,16 @@ export class Container {
 
     this.messageBus.registerEventHandler(CommentUnlikedEvent.name, [
       new CommentUnlikedEventHandler(commentReadRepository, commentBroadcaster),
+    ]);
+
+    // ===== POST MENTIONS EVENT HANDLERS =====
+    this.messageBus.registerEventHandler(UserMentionedNotificationEvent.name, [
+      new UserMentionedNotificationEventHandler(userReadRepository),
+      new UserMentionedReadModelEventHandler(
+        postMentionReadRepository,
+        postReadRepository,
+        userReadRepository
+      ),
     ]);
   }
 
