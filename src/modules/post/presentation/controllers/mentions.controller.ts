@@ -13,8 +13,8 @@ export class MentionsController {
     try {
       const { userId } = req.params as { userId: string };
       const {
-        limit = 20,
-        offset = 0,
+        limit = '20',
+        offset = '0',
         includeRead = 'false',
         fromDate,
         toDate
@@ -40,8 +40,10 @@ export class MentionsController {
         return;
       }
 
-      const parsedLimit = Math.min(parseInt(limit) || 20, 100);
-      const parsedOffset = Math.max(parseInt(offset) || 0, 0);
+      const limitNum = parseInt(limit, 10);
+      const offsetNum = parseInt(offset, 10);
+      const parsedLimit = Math.min(isNaN(limitNum) ? 20 : limitNum, 100);
+      const parsedOffset = Math.max(isNaN(offsetNum) ? 0 : offsetNum, 0);
 
       const query = GetUserMentionsQuery.create(userId, {
         limit: parsedLimit,
@@ -51,7 +53,7 @@ export class MentionsController {
         toDate: toDate ? new Date(toDate) : undefined
       });
 
-      const mentions = await this.messageBus.executeQuery(query);
+      const mentions = await this.messageBus.executeQuery(query) as any[];
 
       const hasMore = mentions.length === parsedLimit;
 
@@ -103,7 +105,7 @@ export class MentionsController {
   async getPostMentions(req: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       const { postId } = req.params as { postId: string };
-      const { limit = 50, offset = 0 } = req.query as { limit?: string; offset?: string };
+      const { limit = '50', offset = '0' } = req.query as { limit?: string; offset?: string };
 
       if (!postId) {
         reply.status(400).send({
@@ -112,15 +114,17 @@ export class MentionsController {
         return;
       }
 
-      const parsedLimit = Math.min(parseInt(limit) || 50, 100);
-      const parsedOffset = Math.max(parseInt(offset) || 0, 0);
+      const limitNum = parseInt(limit, 10);
+      const offsetNum = parseInt(offset, 10);
+      const parsedLimit = Math.min(isNaN(limitNum) ? 50 : limitNum, 100);
+      const parsedOffset = Math.max(isNaN(offsetNum) ? 0 : offsetNum, 0);
 
       const query = GetPostMentionsQuery.create(postId, {
         limit: parsedLimit,
         offset: parsedOffset
       });
 
-      const mentions = await this.messageBus.executeQuery(query);
+      const mentions = await this.messageBus.executeQuery(query) as any[];
 
       const hasMore = mentions.length === parsedLimit;
 
