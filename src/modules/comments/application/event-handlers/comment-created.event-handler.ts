@@ -15,6 +15,13 @@ export class CommentCreatedEventHandler implements EventHandler<CommentsCreatedE
 
   async handle(event: CommentsCreatedEvent): Promise<void> {
     console.log('CommentCreatedEventHandler received event:', event);
+    console.log('Event details:', {
+      commentId: event.commentId,
+      postId: event.postId,
+      userId: event.userId,
+      content: event.content,
+      eventType: event.eventType
+    });
 
     const user = await this.userReadRepository.findById(event.userId);
 
@@ -42,7 +49,9 @@ export class CommentCreatedEventHandler implements EventHandler<CommentsCreatedE
         : undefined,
     };
 
+    console.log('About to save to read model:', commentReadModel);
     await this.commentReadRepository.save(commentReadModel);
+    console.log('Saved to read model successfully');
 
     this.commentEventBroadcaster.broadcastCommentCreated(event);
 

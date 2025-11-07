@@ -14,6 +14,7 @@ import { DeleteCommentCommand } from '../../application/commands/delete-comment.
 // Queries
 import { FindCommentQuery } from '../../application/queries/find-comment.query';
 import { FindCommentsByPostQuery } from '../../application/queries/find-comments-by-post.query';
+import { CountCommentsByPostQuery } from '../../application/queries/count-comments-by-post.query';
 
 export class CommentsController {
   constructor(private messageBus: MessageBus) { }
@@ -206,6 +207,29 @@ export class CommentsController {
       reply.send(comments);
     } catch (error) {
       req.log.error(error instanceof Error ? error : new Error('Unknown error'), 'Failed to get comments by post');
+      reply.status(500).send({
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      });
+    }
+  }
+
+  async getCommentsCountByPost(req: FastifyRequest, reply: FastifyReply): Promise<void> {
+    try {
+      const { postId } = req.params as { postId: string };
+
+      if (!postId) {
+        reply.status(400).send({
+          error: 'postId es requerido',
+        });
+        return;
+      }
+
+      const query = new CountCommentsByPostQuery(v4(), postId);
+      const count = await this.messageBus.executeQuery(query);
+
+      reply.send(count);
+    } catch (error) {
+      req.log.error(error instanceof Error ? error : new Error('Unknown error'), 'Failed to get comments count by post');
       reply.status(500).send({
         error: error instanceof Error ? error.message : 'Error desconocido',
       });

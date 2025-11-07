@@ -21,6 +21,10 @@ export class CreateCommentCommandHandler implements CommandHandler<CreateComment
 
     await this.commentsRepository.save(comment);
 
+    console.log('About to publish event:', event);
+    console.log('Event type:', event.eventType);
+    console.log('Event name:', event.constructor.name);
     this.messageBus.publishEventAsync(event);
+    console.log('Event published successfully');
   }
 }

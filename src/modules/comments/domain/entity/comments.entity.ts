@@ -165,7 +165,7 @@ export class CommentsCreatedEvent extends DomainEvent {
     public readonly content: string,
     public readonly likes: string[]
   ) {
-    super(eventId, commentId, 'CommentCreated')
+    super(eventId, commentId, 'CommentsCreatedEvent')
   }
 }
 

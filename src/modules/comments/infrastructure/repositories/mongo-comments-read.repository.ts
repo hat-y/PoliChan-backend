@@ -183,12 +183,17 @@ export class MongoCommentsReadRepository implements CommentsReadRepository {
 
   async countByPostId(postId: string): Promise<number> {
     const repository = this.readDatabase.connection.getRepository('CommentMongoEntity');
-    return await repository.count({
+    console.log(`Counting comments for postId: ${postId}`);
+
+    const count = await repository.count({
       where: {
         postId: postId,
         'timestamps.deletedAt': null
       }
     });
+
+    console.log(`Found ${count} comments for postId: ${postId}`);
+    return count;
   }
 
   private mapEntityToReadModel(entity: any): CommentsReadModel {
