@@ -313,14 +313,12 @@ export class HttpServer {
     // Obtener menciones de un usuario
     this.instance.get(
       '/api/users/:userId/mentions',
-      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
       (req, reply) => mentionsController.getUserMentions(req, reply)
     );
 
     // Obtener conteo de menciones de un usuario
     this.instance.get(
       '/api/users/:userId/mentions/count',
-      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
       (req, reply) => mentionsController.getMentionCount(req, reply)
     );
 
@@ -337,7 +335,6 @@ export class HttpServer {
     // Marcar mención como leída (futuro)
     this.instance.put(
       '/api/mentions/:mentionId/read',
-      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
       (req, reply) => mentionsController.markMentionAsRead(req, reply)
     );
   }

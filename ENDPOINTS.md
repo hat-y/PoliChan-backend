@@ -471,7 +471,7 @@ Sistema completo de @menciones con procesamiento asíncrono y arquitectura CQRS.
 **URL Parameters:**
 - `userId`: UUID del usuario cuyas menciones se quieren obtener
 
-**Authentication:** Requerido (header `Authorization: Bearer <token>`)
+**Authentication:** No requerido
 
 **Query Parameters:**
 - `limit`: Número de menciones a devolver (default: 20, max: 100)
@@ -530,7 +530,7 @@ GET /api/users/a7b8c9d0-e1f2-4a3b-9c4d-e5f6a7b8c9d0/mentions?fromDate=2025-11-01
 **URL Parameters:**
 - `userId`: UUID del usuario
 
-**Authentication:** Requerido
+**Authentication:** No requerido
 
 **Query Parameters:**
 - `includeRead`: Incluir menciones leídas en el conteo (default: false)
