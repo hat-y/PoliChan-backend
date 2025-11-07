@@ -14,6 +14,7 @@ import loggerPlugin from '../plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 import { PostController } from '../../../modules/post/presentation/controllers/post.controller';
 import { CommentsController } from '../../../modules/comments/presentation/controllers/comments.controller';
+import { MentionsController } from '../../../modules/post/presentation/controllers/mentions.controller';
 import { MessageBus } from '../../domain/message-bus';
 import { getLoggerOptions } from '../common/logger/logger.options';
 import jwtAuthPlugin from './plugins/jwt-auth.plugin';
@@ -23,6 +24,7 @@ export class HttpServer {
   private userController?: UserController;
   private postController?: PostController;
   private commentsController?: CommentsController;
+  private mentionsController?: MentionsController;
   private messageBus: MessageBus;
   private sockets: any[] = []; // Array para los sockets activos
 
@@ -118,11 +120,13 @@ export class HttpServer {
     this.userController = UserModule.initialize(this.messageBus);
     this.postController = PostModule.initialize(this.messageBus);
     this.commentsController = CommentsModule.initialize(this.messageBus);
+    this.mentionsController = new MentionsController(this.messageBus);
 
     // Registra las rutas
     this.registerUserRoutes(this.userController);
     this.registerPostRoutes(this.postController);
     this.registerCommentsRoutes(this.commentsController);
+    this.registerMentionsRoutes(this.mentionsController);
   }
 
   private registerUserRoutes(userController: UserController): void {
@@ -292,6 +296,49 @@ export class HttpServer {
         req: FastifyRequest<RouteGenericInterface>,
         reply: FastifyReply<RouteGenericInterface>
       ): Promise<void> => commentsController.getCommentsByPost(req, reply)
+    );
+
+    this.instance.get(
+      '/api/posts/:postId/comments/count',
+      (
+        req: FastifyRequest<RouteGenericInterface>,
+        reply: FastifyReply<RouteGenericInterface>
+      ): Promise<void> => commentsController.getCommentsCountByPost(req, reply)
+    );
+  }
+
+  private registerMentionsRoutes(mentionsController: MentionsController): void {
+    // ===== USER MENTIONS ENDPOINTS =====
+
+    // Obtener menciones de un usuario
+    this.instance.get(
+      '/api/users/:userId/mentions',
+      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
+      (req, reply) => mentionsController.getUserMentions(req, reply)
+    );
+
+    // Obtener conteo de menciones de un usuario
+    this.instance.get(
+      '/api/users/:userId/mentions/count',
+      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
+      (req, reply) => mentionsController.getMentionCount(req, reply)
+    );
+
+    // ===== POST MENTIONS ENDPOINTS =====
+
+    // Obtener menciones de un post específico
+    this.instance.get(
+      '/api/posts/:postId/mentions',
+      (req, reply) => mentionsController.getPostMentions(req, reply)
+    );
+
+    // ===== MENTION ACTIONS ENDPOINTS =====
+
+    // Marcar mención como leída (futuro)
+    this.instance.put(
+      '/api/mentions/:mentionId/read',
+      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
+      (req, reply) => mentionsController.markMentionAsRead(req, reply)
     );
   }
 
