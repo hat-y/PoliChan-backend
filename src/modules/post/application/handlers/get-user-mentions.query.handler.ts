@@ -2,7 +2,7 @@ import { QueryHandler } from '../../../../shared/domain/query-handler';
 import { GetUserMentionsQuery } from '../queries/get-user-mentions.query';
 import { PostMentionReadRepository } from '../../domain/interfaces/post-mention-read-repository.interface';
 
-export class GetUserMentionsQueryHandler implements QueryHandler<GetUserMentionsQuery> {
+export class GetUserMentionsQueryHandler implements QueryHandler<GetUserMentionsQuery, any[]> {
   constructor(
     private mentionReadRepository: PostMentionReadRepository
   ) {}
@@ -15,7 +15,7 @@ export class GetUserMentionsQueryHandler implements QueryHandler<GetUserMentions
     });
 
     try {
-      // 1. Obtener menciones del usuario
+
       const mentions = await this.mentionReadRepository.getUserMentions({
         userId: query.userId,
         limit: query.limit || 20,
@@ -27,10 +27,6 @@ export class GetUserMentionsQueryHandler implements QueryHandler<GetUserMentions
 
       console.log(`Found ${mentions.length} mentions for user ${query.userId}`);
 
-      // 2. Enriquecer datos si es necesario (ya vienen enriquecidos desde el event handler)
-      // Aquí podríamos agregar datos adicionales como engagement stats si no vienen precargados
-
-      // 3. Formatear para la respuesta API
       const formattedMentions = mentions.map(mention => ({
         id: mention.id,
         post: mention.post ? {
