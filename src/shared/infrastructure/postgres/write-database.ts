@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { UserPostgresEntity } from './entities/user-postgres.entity';
 import { PostPostgresEntity } from './entities/post-postgres.entity';
 import { CommentPostgresEntity } from './entities/comment-postgres.entity';
+import { PostMentionPostgresEntity } from './entities/post-mention-postgres.entity';
 
 export class WriteDatabase {
   private db: DataSource | undefined;
@@ -18,7 +19,7 @@ export class WriteDatabase {
         username: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
-        entities: [UserPostgresEntity, PostPostgresEntity, CommentPostgresEntity],
+        entities: [UserPostgresEntity, PostPostgresEntity, CommentPostgresEntity, PostMentionPostgresEntity],
         synchronize: true, // Solo para desarrollo
       });
     }
