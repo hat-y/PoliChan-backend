@@ -8,7 +8,7 @@ export class WriteDatabase {
   private db: DataSource | undefined;
   private initialized: boolean = false;
 
-  constructor() { }
+  constructor() {}
 
   public async initialize(): Promise<void> {
     if (!this.db) {
@@ -19,8 +19,14 @@ export class WriteDatabase {
         username: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
-        entities: [UserPostgresEntity, PostPostgresEntity, CommentPostgresEntity, PostMentionPostgresEntity],
+        entities: [
+          UserPostgresEntity,
+          PostPostgresEntity,
+          CommentPostgresEntity,
+          PostMentionPostgresEntity,
+        ],
         synchronize: true, // Solo para desarrollo
+        logging: false,
       });
     }
     if (!this.db.isInitialized) {

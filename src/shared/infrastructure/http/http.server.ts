@@ -10,7 +10,7 @@ import fastifyWebsocket from '@fastify/websocket';
 import { UserModule } from '../../../modules/user/user.module';
 import { PostModule } from '../../../modules/post/post.module';
 import { CommentsModule } from '../../../modules/comments/comments.module';
-import loggerPlugin from '../plugins/logger.plugin';
+import loggerPlugin from './plugins/logger.plugin';
 import { UserController } from '../../../modules/user/presentation/controllers/user.controller';
 import { PostController } from '../../../modules/post/presentation/controllers/post.controller';
 import { CommentsController } from '../../../modules/comments/presentation/controllers/comments.controller';
@@ -18,6 +18,10 @@ import { MentionsController } from '../../../modules/post/presentation/controlle
 import { MessageBus } from '../../domain/message-bus';
 import { getLoggerOptions } from '../common/logger/logger.options';
 import jwtAuthPlugin from './plugins/jwt-auth.plugin';
+import { userRoutes } from '../../../modules/user/presentation/routes/user.route';
+import { postRoutes } from '../../../modules/post/presentation/routes/post.route';
+import { commentsRoutes } from '../../../modules/comments/presentation/routes/comments.route';
+import { mentionsRoutes } from '../../../modules/post/presentation/routes/mentions.route';
 
 export class HttpServer {
   private instance: FastifyInstance;
@@ -123,220 +127,10 @@ export class HttpServer {
     this.mentionsController = new MentionsController(this.messageBus);
 
     // Registra las rutas
-    this.registerUserRoutes(this.userController);
-    this.registerPostRoutes(this.postController);
-    this.registerCommentsRoutes(this.commentsController);
-    this.registerMentionsRoutes(this.mentionsController);
-  }
-
-  private registerUserRoutes(userController: UserController): void {
-    this.instance.post('/api/user/register', (req, reply) =>
-      userController.registerUser(req, reply)
-    );
-    this.instance.post('/api/user/login', (req, reply) =>
-      userController.loginUser(req, reply)
-    );
-    this.instance.put(
-      '/api/user/:userId',
-      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
-      (req, reply) => userController.updateUser(req, reply)
-    );
-    this.instance.get(
-      '/api/user/:userId',
-      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
-      (req, reply) => userController.findUser(req, reply)
-    );
-    this.instance.get(
-      '/api/user',
-      { preHandler: [(req, reply) => this.instance.authenticate(req, reply)] },
-      (req, reply) => userController.getAllUsers(req, reply)
-    );
-  }
-
-  private registerPostRoutes(postController: PostController): void {
-    // ===== COMMANDS  =====
-    this.instance.post(
-      '/api/posts',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => postController.createPost(req, reply)
-    );
-
-    this.instance.delete(
-      '/api/posts/:postId',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => postController.deletePost(req, reply)
-    );
-
-    this.instance.post(
-      '/api/posts/:postId/like',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => postController.likePost(req, reply)
-    );
-
-    this.instance.post(
-      '/api/posts/:postId/unlike',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => postController.unlikePost(req, reply)
-    );
-
-    // ===== QUERIES (Read Operations) =====
-    this.instance.get(
-      '/api/posts/:postId',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => postController.getPost(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => postController.getAllPosts(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/user/:userId',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => postController.getPostsByUser(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/timeline',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => postController.getTimeline(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/user/:userId/timeline',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => postController.getUserTimeline(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/most-liked',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => postController.getMostLikedPosts(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/by-likes',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => postController.getPostsByLikesRange(req, reply)
-    );
-  }
-
-  private registerCommentsRoutes(commentsController: CommentsController): void {
-    // ===== COMMANDS  =====
-
-    this.instance.post(
-      '/api/comments',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => commentsController.createComment(req, reply)
-    );
-
-    this.instance.post(
-      '/api/comments/:commentId/like',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => commentsController.likeComment(req, reply)
-    );
-
-    this.instance.post(
-      '/api/comments/:commentId/unlike',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => commentsController.unlikeComment(req, reply)
-    );
-
-    this.instance.delete(
-      '/api/comments/:commentId',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): any => commentsController.deleteComment(req, reply)
-    );
-
-    // ===== QUERIES (Read Operations) =====
-
-    this.instance.get(
-      '/api/comments/:commentId',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => commentsController.getComment(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/:postId/comments',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => commentsController.getCommentsByPost(req, reply)
-    );
-
-    this.instance.get(
-      '/api/posts/:postId/comments/count',
-      (
-        req: FastifyRequest<RouteGenericInterface>,
-        reply: FastifyReply<RouteGenericInterface>
-      ): Promise<void> => commentsController.getCommentsCountByPost(req, reply)
-    );
-  }
-
-  private registerMentionsRoutes(mentionsController: MentionsController): void {
-    // ===== USER MENTIONS ENDPOINTS =====
-
-    // Obtener menciones de un usuario
-    this.instance.get(
-      '/api/users/:userId/mentions',
-      (req, reply) => mentionsController.getUserMentions(req, reply)
-    );
-
-    // Obtener conteo de menciones de un usuario
-    this.instance.get(
-      '/api/users/:userId/mentions/count',
-      (req, reply) => mentionsController.getMentionCount(req, reply)
-    );
-
-    // ===== POST MENTIONS ENDPOINTS =====
-
-    // Obtener menciones de un post específico
-    this.instance.get(
-      '/api/posts/:postId/mentions',
-      (req, reply) => mentionsController.getPostMentions(req, reply)
-    );
-
-    // ===== MENTION ACTIONS ENDPOINTS =====
-
-    // Marcar mención como leída (futuro)
-    this.instance.put(
-      '/api/mentions/:mentionId/read',
-      (req, reply) => mentionsController.markMentionAsRead(req, reply)
-    );
+    await userRoutes(this.instance, this.userController);
+    await postRoutes(this.instance, this.postController);
+    await commentsRoutes(this.instance, this.commentsController);
+    await mentionsRoutes(this.instance, this.mentionsController);
   }
 
   public async initialize(): Promise<void> {

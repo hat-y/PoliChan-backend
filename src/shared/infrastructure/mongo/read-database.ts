@@ -15,9 +15,14 @@ export class ReadDatabase {
       this.db = new DataSource({
         type: 'mongodb',
         url: process.env.MONGODB_URI,
-        entities: [UserMongoEntity, PostMongoEntity, CommentMongoEntity, PostMentionMongoEntity],
+        entities: [
+          UserMongoEntity,
+          PostMongoEntity,
+          CommentMongoEntity,
+          PostMentionMongoEntity,
+        ],
         synchronize: true, // Solo para desarrollo
-        logging: true,
+        logging: false,
       });
     }
     if (!this.db.isInitialized) {
