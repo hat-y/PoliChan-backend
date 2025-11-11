@@ -1,96 +1,163 @@
-import { UserRegisteredEventHandler } from '../../../modules/user/application/event-handlers/user-registered.event-handler';
-import { UserUpdatedEventHandler } from '../../../modules/user/application/event-handlers/user-updated.event-handler';
-import { FindUserQueryHandler } from '../../../modules/user/application/handlers/find-user-query.handler';
-import { GetAllUsersQueryHandler } from '../../../modules/user/application/handlers/get-all-user-query.handler';
-import { RegisterUserCommandHandler } from '../../../modules/user/application/handlers/register-user-command.handler';
-import { MongoUserReadRepository } from '../../../modules/user/infrastructure/repositories/mongo-user-read.repository';
-import { PostgresUserWriteRepository } from '../../../modules/user/infrastructure/repositories/postgres-user-write.repository';
+import { HttpServer } from '../http/http.server';
 import { MessageBus } from '../../domain/message-bus';
 import { InMemoryMessageBus } from '../in-memory-message-bus';
 import { ReadDatabase } from '../mongo/read-database';
 import { WriteDatabase } from '../postgres/write-database';
-import { UpdatedUserCommandHandler } from '../../../modules/user/application/handlers/update-user-command.handler';
 
-// Post module imports
-import { CreatePostCommand } from '../../../modules/post/application/commands/create-post.command';
-import { DeletePostCommand } from '../../../modules/post/application/commands/delete-post.command';
-import { LikePostCommand } from '../../../modules/post/application/commands/like-post.command';
-import { UnlikePostCommand } from '../../../modules/post/application/commands/unlike-post.command';
-import { CreatePostCommandHandler } from '../../../modules/post/application/handlers/create-post-command.handler';
-import { DeletePostCommandHandler } from '../../../modules/post/application/handlers/delete-post-command.handler';
-import { LikePostCommandHandler } from '../../../modules/post/application/handlers/like-post-command.handler';
-import { UnlikePostCommandHandler } from '../../../modules/post/application/handlers/unlike-post-command.handler';
-import { FindPostQuery } from '../../../modules/post/application/queries/find-post.query';
-import { GetAllPostsQuery } from '../../../modules/post/application/queries/get-all-posts.query';
-import { FindPostsByUserQuery } from '../../../modules/post/application/queries/find-posts-by-user.query';
-import { GetTimelineQuery } from '../../../modules/post/application/queries/get-timeline.query';
-import { GetUserTimelineQuery } from '../../../modules/post/application/queries/get-user-timeline.query';
-import { GetMostLikedPostsQuery } from '../../../modules/post/application/queries/get-most-liked-posts.query';
-import { FindPostsByLikesRangeQuery } from '../../../modules/post/application/queries/find-posts-by-likes-range.query';
-import { FindPostQueryHandler } from '../../../modules/post/application/handlers/find-post-query.handler';
-import { GetAllPostsQueryHandler } from '../../../modules/post/application/handlers/get-all-posts-query.handler';
-import { FindPostsByUserQueryHandler } from '../../../modules/post/application/handlers/find-posts-by-user-query.handler';
-import { GetTimelineQueryHandler } from '../../../modules/post/application/handlers/get-timeline-query.handler';
-import { GetUserTimelineQueryHandler } from '../../../modules/post/application/handlers/get-user-timeline-query.handler';
-import { GetMostLikedPostsQueryHandler } from '../../../modules/post/application/handlers/get-most-liked-posts-query.handler';
-import { FindPostsByLikesRangeQueryHandler } from '../../../modules/post/application/handlers/find-posts-by-likes-range-query.handler';
-import { PostgresPostWriteRepository } from '../../../modules/post/infrastructure/repositories/postgres-post-write.repository';
-import { MongoPostReadRepository } from '../../../modules/post/infrastructure/repositories/mongo-post-read.repository';
-import { PostCreatedEvent } from '../../../modules/post/domain/entity/post.entity';
-import { PostDeletedEvent } from '../../../modules/post/domain/entity/post.entity';
-import { LikeCreatedEvent } from '../../../modules/post/domain/entity/post.entity';
-import { LikeRemovedEvent } from '../../../modules/post/domain/entity/post.entity';
-import { PostCreatedEventHandler } from '../../../modules/post/application/event-handlers/post-created.event-handler';
-import { PostDeletedEventHandler } from '../../../modules/post/application/event-handlers/post-deleted.event-handler';
-import { LikeCreatedEventHandler } from '../../../modules/post/application/event-handlers/like-created.event-handler';
-import { LikeRemovedEventHandler } from '../../../modules/post/application/event-handlers/like-removed.event-handler';
-import { HttpServer } from '../http/http.server';
+// User module commands imports
+import {
+  FindUserQueryHandler,
+  GetAllUsersQueryHandler,
+  LoginUserQueryHandler,
+  RegisterUserCommandHandler,
+  UpdatedUserCommandHandler,
+} from '../../../modules/user/application/handlers';
+
+// User module queries imports
+import {
+  GetAllUsersQuery,
+  FindUserQuery,
+  LoginUserQuery,
+} from '../../../modules/user/application/queries';
+
+// User module event handlers imports
+import {
+  UserRegisteredEventHandler,
+  UserUpdatedEventHandler,
+} from '../../../modules/user/application/event-handlers/';
+
+// User module repositories imports
+import {
+  MongoUserReadRepository,
+  PostgresUserWriteRepository,
+} from '../../../modules/user/infrastructure/repositories';
+
+// Post module commands imports
+import {
+  CreatePostCommand,
+  DeletePostCommand,
+  LikePostCommand,
+  UnlikePostCommand,
+} from '../../../modules/post/application/commands';
+
+// Post module queries imports
+import {
+  GetUserMentionsQuery,
+  FindPostsByLikesRangeQuery,
+  FindPostsByUserQuery,
+  FindPostQuery,
+  GetAllPost,
+  GetAllPostsQuery,
+  GetMentionCountQuery,
+  GetMostLikedPostsQuery,
+  GetPostMentionsQuery,
+  GetTimelineQuery,
+  GetUserTimelineQuery,
+} from '../../../modules/post/application/queries';
+
+// Post module handlers imports
+import {
+  FindPostQueryHandler,
+  CreatePostCommandHandler,
+  DeletePostCommandHandler,
+  FindPostsByLikesRangeQueryHandler,
+  FindPostsByUserQueryHandler,
+  GetAllPostsQueryHandler,
+  GetMentionCountQueryHandler,
+  GetMostLikedPostsQueryHandler,
+  GetPostMentionsQueryHandler,
+  GetTimelineQueryHandler,
+  GetUserMentionsQueryHandler,
+  LikePostCommandHandler,
+  UnlikePostCommandHandler,
+  GetUserTimelineQueryHandler,
+} from '../../../modules/post/application/handlers';
+
+// Post domain events imports
+import {
+  PostCreatedEvent,
+  LikeCreatedEvent,
+  LikeRemovedEvent,
+  PostDeletedEvent,
+  PostUpdatedEvent,
+} from '../../../modules/post/domain/entity/post.entity';
+
+// Post module event handlers imports
+import {
+  PostCreatedEventHandler,
+  LikeCreatedEventHandler,
+  LikeRemovedEventHandler,
+  PostCreatedForMentionsEventHandler,
+  PostDeletedEventHandler,
+  UserMentionedNotificationEventHandler,
+  UserMentionedReadModelEventHandler,
+} from '../../../modules/post/application/event-handlers';
+
 import { WebSocketUserEventBroadcaster } from '../../../modules/user/application/broadcasting/websocket-user-event-broadcaster';
-import { GetAllUsersQuery } from '../../../modules/user/application/queries/get-all-users.query';
-import { FindUserQuery } from '../../../modules/user/application/queries/find-user.query';
-import { LoginUserQueryHandler } from '../../../modules/user/application/handlers/login-user-query.handler';
-import { LoginUserQuery } from '../../../modules/user/application/queries/login-user.query';
 import { WebSocketPostEventBroadcaster } from '../../../modules/post/application/broadcasting/websocket-post-event-broadcaster';
 import { WebSocketCommentEventBroadcaster } from '../../../modules/comments/application/broadcasting/websocket-comment-event-broadcaster';
 
-// Post Mentions module imports
-import { PostgresPostMentionWriteRepository } from '../../../modules/post/infrastructure/repositories/postgres-post-mention-write.repository';
-import { MongoPostMentionReadRepository } from '../../../modules/post/infrastructure/repositories/mongo-post-mention-read.repository';
-import { ContentProcessorService } from '../../../modules/post/domain/services/content-processor.service';
-import { PostCreatedForMentionsEventHandler } from '../../../modules/post/application/event-handlers/post-created-for-mentions.event-handler';
-import { UserMentionedNotificationEvent } from '../../../modules/post/domain/events/user-mentioned-notification.event';
-import { UserMentionedNotificationEventHandler } from '../../../modules/post/application/event-handlers/user-mentioned-notification.event-handler';
-import { UserMentionedReadModelEventHandler } from '../../../modules/post/application/event-handlers/user-mentioned-read-model.event-handler';
-import { GetUserMentionsQuery } from '../../../modules/post/application/queries/get-user-mentions.query';
-import { GetMentionCountQuery } from '../../../modules/post/application/queries/get-mention-count.query';
-import { GetPostMentionsQuery } from '../../../modules/post/application/queries/get-post-mentions.query';
-import { GetUserMentionsQueryHandler } from '../../../modules/post/application/handlers/get-user-mentions.query.handler';
-import { GetMentionCountQueryHandler } from '../../../modules/post/application/handlers/get-mention-count.query.handler';
-import { GetPostMentionsQueryHandler } from '../../../modules/post/application/handlers/get-post-mentions.query.handler';
+// Post module repositories imports
+import {
+  PostgresPostMentionWriteRepository,
+  MongoPostMentionReadRepository,
+  MongoPostReadRepository,
+  PostgresPostWriteRepository,
+} from '../../../modules/post/infrastructure/repositories';
 
-// Comments module imports
-import { CreateCommentCommand } from '../../../modules/comments/application/commands/create-comment.command';
-import { DeleteCommentCommand } from '../../../modules/comments/application/commands/delete-comment.command';
-import { LikeCommentCommand } from '../../../modules/comments/application/commands/like-comment.command';
-import { UnlikeCommentCommand } from '../../../modules/comments/application/commands/unlike-comment.command';
-import { CreateCommentCommandHandler } from '../../../modules/comments/application/handlers/create-comment-command.handler';
-import { DeleteCommentCommandHandler } from '../../../modules/comments/application/handlers/delete-comment-command.handler';
-import { LikeCommentCommandHandler } from '../../../modules/comments/application/handlers/like-comment-command.handler';
-import { UnlikeCommentCommandHandler } from '../../../modules/comments/application/handlers/unlike-comment-command.handler';
-import { FindCommentQuery } from '../../../modules/comments/application/queries/find-comment.query';
-import { FindCommentsByPostQuery } from '../../../modules/comments/application/queries/find-comments-by-post.query';
-import { CountCommentsByPostQuery } from '../../../modules/comments/application/queries/count-comments-by-post.query';
-import { FindCommentQueryHandler } from '../../../modules/comments/application/handlers/find-comment-query.handler';
-import { FindCommentsByPostQueryHandler } from '../../../modules/comments/application/handlers/find-comments-by-post-query.handler';
-import { CountCommentsByPostQueryHandler } from '../../../modules/comments/application/handlers/count-comments-by-post-query.handler';
-import { PostgresCommentsWriteRepository } from '../../../modules/comments/infrastructure/repositories/postgres-comments-write.repository';
-import { MongoCommentsReadRepository } from '../../../modules/comments/infrastructure/repositories/mongo-comments-read.repository';
-import { CommentsCreatedEvent, CommentsUpdatedEvent, CommentsDeletedEvent, CommentLikedEvent, CommentUnlikedEvent } from '../../../modules/comments/domain/entity/comments.entity';
-import { CommentCreatedEventHandler } from '../../../modules/comments/application/event-handlers/comment-created.event-handler';
-import { CommentDeletedEventHandler } from '../../../modules/comments/application/event-handlers/comment-deleted.event-handler';
-import { CommentLikedEventHandler } from '../../../modules/comments/application/event-handlers/comment-liked.event-handler';
-import { CommentUnlikedEventHandler } from '../../../modules/comments/application/event-handlers/comment-unliked.event-handler';
-import { CommentUpdatedEventHandler } from '../../../modules/comments/application/event-handlers/comment-updated.event-handler';
+// Post module services imports
+import { ContentProcessorService } from '../../../modules/post/domain/services/content-processor.service';
+import { UserMentionedNotificationEvent } from '../../../modules/post/domain/events/user-mentioned-notification.event';
+
+// Comments module commands imports
+import {
+  CreateCommentCommand,
+  DeleteCommentCommand,
+  LikeCommentCommand,
+  UnlikeCommentCommand,
+} from '../../../modules/comments/application/commands';
+
+// Comments module queries imports
+import {
+  FindCommentQuery,
+  CountCommentsByPostQuery,
+  FindCommentsByPostQuery,
+} from '../../../modules/comments/application/queries';
+
+// Comments module handlers imports
+import {
+  UnlikeCommentCommandHandler,
+  CountCommentsByPostQueryHandler,
+  CreateCommentCommandHandler,
+  DeleteCommentCommandHandler,
+  FindCommentQueryHandler,
+  FindCommentsByPostQueryHandler,
+  LikeCommentCommandHandler,
+} from '../../../modules/comments/application/handlers';
+
+// Comments module repositories imports
+import {
+  PostgresCommentsWriteRepository,
+  MongoCommentsReadRepository,
+} from '../../../modules/comments/infrastructure/repositories';
+
+// Comments domain events imports
+import {
+  CommentsCreatedEvent,
+  CommentsUpdatedEvent,
+  CommentsDeletedEvent,
+  CommentLikedEvent,
+  CommentUnlikedEvent,
+} from '../../../modules/comments/domain/entity/comments.entity';
+
+// Comments event handlers imports
+import {
+  CommentLikedEventHandler,
+  CommentCreatedEventHandler,
+  CommentDeletedEventHandler,
+  CommentUnlikedEventHandler,
+  CommentUpdatedEventHandler,
+} from '../../../modules/comments/application/event-handlers';
 
 export class Container {
   public messageBus: MessageBus;
@@ -141,13 +208,17 @@ export class Container {
     const commentWriteRepository = new PostgresCommentsWriteRepository(
       this.writeDatabase
     );
-    const commentReadRepository = new MongoCommentsReadRepository(this.readDatabase);
+    const commentReadRepository = new MongoCommentsReadRepository(
+      this.readDatabase
+    );
 
     // Post Mentions module repositories
     const postMentionWriteRepository = new PostgresPostMentionWriteRepository(
       this.writeDatabase
     );
-    const postMentionReadRepository = new MongoPostMentionReadRepository(this.readDatabase);
+    const postMentionReadRepository = new MongoPostMentionReadRepository(
+      this.readDatabase
+    );
 
     // Services
     const contentProcessor = new ContentProcessorService(userWriteRepository);
@@ -326,7 +397,11 @@ export class Container {
 
     // ===== COMMENTS EVENT HANDLERS =====
     this.messageBus.registerEventHandler(CommentsCreatedEvent.name, [
-      new CommentCreatedEventHandler(commentReadRepository, userReadRepository, commentBroadcaster),
+      new CommentCreatedEventHandler(
+        commentReadRepository,
+        userReadRepository,
+        commentBroadcaster
+      ),
     ]);
 
     this.messageBus.registerEventHandler(CommentsUpdatedEvent.name, [
