@@ -2,10 +2,10 @@ import { QueryHandler } from '../../../../shared/domain/query-handler';
 import { GetMentionCountQuery } from '../queries/get-mention-count.query';
 import { PostMentionReadRepository } from '../../domain/interfaces/post-mention-read-repository.interface';
 
-export class GetMentionCountQueryHandler implements QueryHandler<GetMentionCountQuery> {
-  constructor(
-    private mentionReadRepository: PostMentionReadRepository
-  ) {}
+export class GetMentionCountQueryHandler
+  implements QueryHandler<GetMentionCountQuery>
+{
+  constructor(private mentionReadRepository: PostMentionReadRepository) {}
 
   async handle(query: GetMentionCountQuery): Promise<any> {
     console.log(`Getting mention count for user ${query.userId}`);
@@ -24,17 +24,19 @@ export class GetMentionCountQueryHandler implements QueryHandler<GetMentionCount
 
       console.log(`Mention counts for user ${query.userId}:`, {
         total: totalCount,
-        unread: unreadCount
+        unread: unreadCount,
       });
 
       return {
         totalMentions: totalCount,
         unreadMentions: unreadCount,
-        userId: query.userId
+        userId: query.userId,
       };
-
     } catch (error) {
-      console.error(`Error getting mention count for user ${query.userId}:`, error);
+      console.error(
+        `Error getting mention count for user ${query.userId}:`,
+        error
+      );
       throw new Error('Failed to get mention count');
     }
   }

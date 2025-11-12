@@ -62,7 +62,9 @@ export class InMemoryMessageBus implements MessageBus {
   ): Promise<void> {
     const eventName = event.constructor.name;
     const handlers = this.eventHandlers.get(eventName) || [];
-    console.log(`Processing event ${eventName}: found ${handlers.length} handlers`);
+    console.log(
+      `Processing event ${eventName}: found ${handlers.length} handlers`
+    );
 
     if (handlers.length === 0) {
       console.warn(`No handlers registered for event: ${eventName}`);
@@ -75,7 +77,9 @@ export class InMemoryMessageBus implements MessageBus {
   }
 
   public publishEventAsync<TEvent extends DomainEvent>(event: TEvent): void {
-    console.log(`Publishing event async: ${event.constructor.name} (${event.eventId})`);
+    console.log(
+      `Publishing event async: ${event.constructor.name} (${event.eventId})`
+    );
     this.eventQueue.push(event);
     this.processEventQueue();
   }

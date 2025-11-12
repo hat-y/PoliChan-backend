@@ -11,13 +11,19 @@ export async function userRoutes(
   fastify.post('/api/user/login', (req, reply) =>
     userController.loginUser(req, reply)
   );
-  fastify.put('/api/user/:userId', (req, reply) =>
-    userController.updateUser(req, reply)
+  fastify.put(
+    '/api/user/:userId',
+    { preHandler: [fastify.authenticate] },
+    (req, reply) => userController.updateUser(req, reply)
   );
-  fastify.get('/api/user/:userId', (req, reply) =>
-    userController.findUser(req, reply)
+  fastify.get(
+    '/api/user/:userId',
+    { preHandler: [fastify.authenticate] },
+    (req, reply) => userController.findUser(req, reply)
   );
-  fastify.get('/api/user', (req, reply) =>
-    userController.getAllUsers(req, reply)
+  fastify.get(
+    '/api/user',
+    { preHandler: [fastify.authenticate] },
+    (req, reply) => userController.getAllUsers(req, reply)
   );
 }
