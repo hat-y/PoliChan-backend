@@ -1,9 +1,10 @@
 import { QueryHandler } from '../../../../shared/domain/query-handler';
 import { GetMentionCountQuery } from '../queries/get-mention-count.query';
 import { PostMentionReadRepository } from '../../domain/interfaces/post-mention-read-repository.interface';
+import { PostMentionReadModel } from '../../domain/interfaces/post-mention-read-model.interface';
 
 export class GetMentionCountQueryHandler
-  implements QueryHandler<GetMentionCountQuery>
+  implements QueryHandler<GetMentionCountQuery, PostMentionReadModel[]>
 {
   constructor(private mentionReadRepository: PostMentionReadRepository) {}
 
