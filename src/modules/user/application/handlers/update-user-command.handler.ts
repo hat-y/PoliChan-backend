@@ -5,12 +5,13 @@ import { UserUpdatedEvent } from '../../domain/entities/user.entity';
 import { UserWriteRepository } from '../../domain/interfaces/user-write-repository.inferface';
 import { UpdateUserCommand } from '../commands/update-user.command';
 
-export class UpdatedUserCommandHandler implements CommandHandler<UpdateUserCommand> {
-
+export class UpdatedUserCommandHandler
+  implements CommandHandler<UpdateUserCommand>
+{
   constructor(
     private userRepository: UserWriteRepository,
     private messageBus: MessageBus
-  ) { }
+  ) {}
 
   async handle(command: UpdateUserCommand): Promise<void> {
     const foundUser = await this.userRepository.findById(command.userId);
@@ -18,7 +19,7 @@ export class UpdatedUserCommandHandler implements CommandHandler<UpdateUserComma
       throw new Error('User not found');
     }
 
-    const updatedUser = foundUser.updateName(command.userName);
+    const updatedUser = foundUser.updateUserName(command.userName);
     await this.userRepository.save(updatedUser);
 
     const event = new UserUpdatedEvent(

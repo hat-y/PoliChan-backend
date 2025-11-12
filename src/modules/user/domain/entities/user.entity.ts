@@ -34,12 +34,12 @@ export class User {
     );
   }
 
-  public updateName(newName: string): User {
+  public updateUserName(newUserName: string): User {
     return new User(
       this.id,
-      newName,
+      this.firstName,
       this.lastName,
-      this.userName,
+      newUserName,
       this.password,
       this.createdAt,
       new Date()

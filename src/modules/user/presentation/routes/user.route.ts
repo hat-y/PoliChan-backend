@@ -13,17 +13,17 @@ export async function userRoutes(
   );
   fastify.put(
     '/api/user/:userId',
-    { preHandler: [fastify.authenticate] },
+    { preHandler: [(req, reply) => fastify.authenticate(req, reply)] },
     (req, reply) => userController.updateUser(req, reply)
   );
   fastify.get(
     '/api/user/:userId',
-    { preHandler: [fastify.authenticate] },
+    { preHandler: [(req, reply) => fastify.authenticate(req, reply)] },
     (req, reply) => userController.findUser(req, reply)
   );
   fastify.get(
     '/api/user',
-    { preHandler: [fastify.authenticate] },
+    { preHandler: [(req, reply) => fastify.authenticate(req, reply)] },
     (req, reply) => userController.getAllUsers(req, reply)
   );
 }
